@@ -2,20 +2,20 @@ import numpy as np
 import pandas as pd
 from typing import List
 
-from columns import Columns
+from .columns import Columns
 
 Numeric = float | int | np.number
 
 def check_range(x: Numeric, low: Numeric, high: Numeric) -> int:
-    """_summary_
+    """Check that a value falls within an accepted range.
 
     Args:
-        x (Numeric): _description_
-        low (Numeric): _description_
-        high (Numeric): _description_
+        x (Numeric): The value to check.
+        low (Numeric): The minimum bound on the range check. 
+        high (Numeric): The maximum bound on the range check. 
 
     Returns:
-        int: _description_
+        int: Returns 0 if the check passes, 1 if the check fails. 
     """
     if x > low and x < high:
         return 0
@@ -23,14 +23,14 @@ def check_range(x: Numeric, low: Numeric, high: Numeric) -> int:
 
 
 def check_range_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFrame:
-    """_summary_
+    """Check that all observations fall within an accepted range of values in a Pandas DataFrame.
 
     Args:
-        dat (pd.DataFrame): _description_
-        columns (Columns): _description_
+        dat (pd.DataFrame): A DataFrame that has has both observations and criteria needed to run the range check.
+        columns (Columns): A Columns object that provides column mappings for everything needed to run the test. 
 
     Returns:
-        pd.DataFrame: _description_
+        pd.DataFrame: Updated DataFrame that now has a `qa_range` column with associated QA/QC flag values. 
     """
     dat = dat.assign(
         qa_range = dat[columns.compare_col].between(dat[columns.min_col], dat[columns.max_col], inclusive="both")
@@ -42,15 +42,15 @@ def check_range_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFram
 
 
 def check_step(x: Numeric, prev: Numeric, threshold: Numeric) -> int:
-    """_summary_
+    """Check that the difference between two consecutive values are below a given threshold. 
 
     Args:
-        x (Numeric): _description_
-        prev (Numeric): _description_
-        threshold (Numeric): _description_
+        x (Numeric): The value to check.
+        prev (Numeric): The previous value to compare with `x`.
+        threshold (Numeric): The threshold that the difference between `x` and `prev` must be smaller than. 
 
     Returns:
-        int: _description_
+        int:  Returns 0 if the check passes, 1 if the check fails. 
     """
     if abs(prev - x) < threshold:
         return 0
@@ -58,14 +58,14 @@ def check_step(x: Numeric, prev: Numeric, threshold: Numeric) -> int:
 
 
 def check_step_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFrame:
-    """_summary_
+    """Check step size criteria and assign QA flag for all observations in a DataFrame
 
     Args:
-        dat (pd.DataFrame): _description_
-        columns (Columns): _description_
+        dat (pd.DataFrame): A DataFrame that has has both observations and criteria needed to run the step check.
+        columns (Columns): A Columns object that provides column mappings for everything needed to run the test. 
 
     Returns:
-        pd.DataFrame: _description_
+        pd.DataFrame:  Updated DataFrame that now has a `qa_step` column with associated QA/QC flag values. 
     """
     dat = dat.assign(
         diff = abs(dat[columns.compare_col].rolling(2).apply(lambda x: x.iloc[1] - x.iloc[0]))
@@ -80,19 +80,39 @@ def check_step_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFrame
 
 
 def check_variance(x: np.ndarray | List[Numeric], threshold: Numeric) -> int:
-    """_summary_
+    """Check that the standard deviation of all values within a day is above a given threshold.
 
     Args:
-        x (np.ndarray | List[Numeric]): _description_
-        threshold (Numeric): _description_
+        x (np.ndarray | List[Numeric]): Array-like object of all observations over the course of a day. 
+        threshold (Numeric): The standard deviation value that must be exceeded for the test to pass. 
 
     Returns:
-        int: _description_
+        int: Returns 0 if the check passes, 1 if the check fails. 
     """
     if np.std(x) > threshold:
         return 0
     return 1
 
+
+def _calc_daily_variance(dat: pd.DataFrame, columns: Columns) -> pd.DataFrame:
+
+    dat = dat.assign(
+        datetime = pd.to_datetime(dat[columns.dt_col])
+    )
+    
+    sd = dat.groupby([pd.Grouper(key=columns.dt_col, freq="1D"), columns.elem_col])[columns.compare_col].std().reset_index()
+    sd = sd.assign(
+        date = sd[columns.dt_col].dt.date
+    )
+    dat = dat.assign(
+        date = dat[columns.dt_col].dt.date
+    )
+    sd = sd[["date", columns.elem_col, columns.compare_col]]
+    sd.columns = ["date", columns.elem_col, "sd"]
+
+    dat = dat.merge(sd, on=[columns.elem_col, "date"], how="left")
+    dat = dat[["date", columns.elem_col, "sd"]]
+    return dat
 
 def check_variance_pd(dat: pd.DataFrame, columns: Columns, **kwargs: pd.DataFrame) -> pd.DataFrame:
     """Check that the standard deviation of observations over the course of a day are above a
@@ -101,29 +121,24 @@ def check_variance_pd(dat: pd.DataFrame, columns: Columns, **kwargs: pd.DataFram
     Args:
         dat (pd.DataFrame): A DataFrame of observations and threshold values for the test.
         columns (Columns): A mapping of columns to use in the calculation. 
-        **kwargs (pd.DataFrame): Optional - A DataFrame of daily variance. 
+        **kwargs (pd.DataFrame): Optional - A DataFrame of daily variance for each element. 
 
     Returns:
         pd.DataFrame: _description_
     """
+    
     if "variance_df" in kwargs:
-        dat = dat.merge(sd, on=[columns.elem_col, "date"], how="left")
+        dat = dat.assign(
+            date = pd.to_datetime(dat[columns.dt_col]).dt.date
+        )
+        dat = dat.merge(kwargs["variance_df"], on=[columns.elem_col, "date"], how="left")
     else: 
+        var = _calc_daily_variance(dat, columns)
         dat = dat.assign(
-            datetime = pd.to_datetime(dat[columns.dt_col])
+            date = pd.to_datetime(dat[columns.dt_col]).dt.date
         )
-        
-        sd = dat.groupby([pd.Grouper(key=columns.dt_col, freq="1D"), columns.elem_col])[columns.compare_col].std().reset_index()
-        sd = sd.assign(
-            date = sd[columns.dt_col].dt.date
-        )
-        dat = dat.assign(
-            date = dat[columns.dt_col].dt.date
-        )
-        sd = sd[["date", columns.elem_col, columns.compare_col]]
-        sd.columns = ["date", columns.elem_col, "sd"]
-
-        dat = dat.merge(sd, on=[columns.elem_col, "date"], how="left")
+        dat = dat.merge(var, on=[columns.elem_col, "date"], how="left")
+    
 
     dat = dat.assign(
         qa_delta = (~(dat['sd'] > dat[columns.delta_col])).astype(int)

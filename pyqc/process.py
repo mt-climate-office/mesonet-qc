@@ -1,6 +1,6 @@
 import pandas as pd
-import checks as ck
-from columns import Columns
+import pyqc.checks as ck
+from .columns import Columns
 
 from typing import Callable
 
