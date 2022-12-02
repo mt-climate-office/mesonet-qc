@@ -1,6 +1,8 @@
 import pandas as pd
+
 import pyqc.checks as ck
 from pyqc.columns import Columns
+
 
 def test_check_range():
     assert ck.check_range(5, 0, 6) == 0, "Value in valid range fails test."
@@ -13,27 +15,31 @@ def test_check_step():
 
 
 def test_check_variance():
-    assert ck.check_variance([1, 2, 1, 2, 1, 2], 0.25) == 0, "Std dev check fails when it should pass."
-    assert ck.check_variance([1, 2, 1, 2, 1, 2], 1) == 1, "Std dev check passes when it should fail."
+    assert (
+        ck.check_variance([1, 2, 1, 2, 1, 2], 0.25) == 0
+    ), "Std dev check fails when it should pass."
+    assert (
+        ck.check_variance([1, 2, 1, 2, 1, 2], 1) == 1
+    ), "Std dev check passes when it should fail."
 
 
 def test_check_range_pd(observations, elements):
     columns = Columns()
-    dat = observations.merge(elements, on = ["station", "element"], how="left")
+    dat = observations.merge(elements, on=["station", "element"], how="left")
     dat = ck.check_range_pd(dat, columns)
     assert "qa_range" in dat.columns, "Range QA flag not properly added to DataFrame."
 
 
 def test_check_step_pd(observations, elements):
     columns = Columns()
-    dat = observations.merge(elements, on = ["station", "element"], how="left")
+    dat = observations.merge(elements, on=["station", "element"], how="left")
     dat = ck.check_step_pd(dat, columns)
     assert "qa_step" in dat.columns, "Step QA flag not properly added to DataFrame."
 
 
 def test_check_variance_pd(observations, elements):
     columns = Columns()
-    dat = observations.merge(elements, on = ["station", "element"], how="left")
+    dat = observations.merge(elements, on=["station", "element"], how="left")
     dat = ck.check_variance_pd(dat, columns)
     assert "qa_delta" in dat.columns, "Delta QA flag not properly added to DataFrame."
 
@@ -41,6 +47,6 @@ def test_check_variance_pd(observations, elements):
 def test_check_variance_with_premade_deltas(observations, elements):
     columns = Columns()
     premade = ck._calc_daily_variance(observations, columns)
-    dat = observations.merge(elements, on = ["station", "element"], how="left")
-    dat = ck.check_variance_pd(dat, columns, variance_df = premade)
+    dat = observations.merge(elements, on=["station", "element"], how="left")
+    dat = ck.check_variance_pd(dat, columns, variance_df=premade)
     assert "qa_delta" in dat.columns, "Delta QA flag not properly added to DataFrame."
