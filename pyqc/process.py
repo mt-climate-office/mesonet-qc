@@ -39,9 +39,10 @@ def check_observations(
 
     for check in checks:
         dat = check(dat, columns=columns, **kwargs)
-    dat = dat[
-        ["station", "datetime", "element", "value", "qa_range", "qa_step", "qa_delta"]
-    ]
+
+    cols = dat.columns.to_series().str.contains("station|datetime|element|value|qa_")
+
+    dat = dat[dat.columns[cols]]
     return dat
 
 
