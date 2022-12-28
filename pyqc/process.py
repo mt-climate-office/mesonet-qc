@@ -48,8 +48,8 @@ def check_observations(
 
 # thresholds = pd.read_csv("../test/elements.csv")
 # thresholds = thresholds[['station', 'element', 'range_min', 'range_max', 'step_size', 'persistence_delta', 'spatial_sd']]
-# dat = pd.read_csv("https://mesonet.climate.umt.edu/api/v2/observations?stations=aceabsar&start_time=2022-10-01&end_time=2022-10-03&wide=False&type=csv&level=0")
+# dat = pd.read_csv("~/git/mco/mesonet_app/zc_example.csv")
 # dat = dat[['station', 'datetime', 'element', 'value']]
 # columns = Columns()
-
+# checks = [ck.check_range_pd, ck.check_step_pd]
 # check_observations(dat, thresholds, columns, ck.check_range_pd, ck.check_step_pd, ck.check_variance_pd)

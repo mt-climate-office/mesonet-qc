@@ -40,6 +40,13 @@ def check_range_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFram
         )
     )
     dat = dat.assign(qa_range=(-dat["qa_range"]).astype(int))
+
+    for i, row in dat.iterrows():
+        val = row['qa_range']
+
+        if np.isnan(row['range_min']) or np.isnan(row['range_max']):
+            val = np.nan
+        dat.at[i, "qa_range"] = val
     return dat
 
 
@@ -83,6 +90,14 @@ def check_step_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFrame
     dat = dat[~dat["diff"].isna()].reset_index(drop=True)
     dat = dat.assign(qa_step=(~(dat["diff"] < dat[columns.step_col])).astype(int))
     dat = dat.drop(columns=["diff"])
+
+    for i, row in dat.iterrows():
+        val = row['qa_step']
+
+        if np.isnan(row['step_size']):
+            val = np.nan
+        dat.at[i, "qa_step"] = val
+
     return dat
 
 
@@ -150,4 +165,10 @@ def check_variance_pd(
     dat = dat.assign(qa_delta=(~(dat["sd"] > dat[columns.delta_col])).astype(int))
 
     dat = dat.drop(columns=["sd"])
+    for i, row in dat.iterrows():
+        val = row['qa_delta']
+
+        if np.isnan(row['persistence_delta']):
+            val = np.nan
+        dat.at[i, "qa_delta"] = val
     return dat
