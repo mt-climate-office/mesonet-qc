@@ -69,12 +69,18 @@ def check_step_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFrame
     Returns:
         pd.DataFrame:  Updated DataFrame that now has a `qa_step` column with associated QA/QC flag values.
     """
-    dat = dat.assign(
-        diff=abs(
-            dat[columns.compare_col].rolling(2).apply(lambda x: x.iloc[1] - x.iloc[0])
-        )
-    )
-    dat = dat[~dat["diff"].isna()]
+    dat = dat.sort_values([columns.elem_col, columns.dt_col], ascending=False, ignore_index=True)
+
+    dat = dat.set_index([columns.dt_col])
+
+    diffs = dat.groupby(columns.elem_col)[columns.compare_col].rolling(2).apply(
+            lambda x: x.iloc[1] - x.iloc[0]
+        ).shift(-1).reset_index().rename(columns={"value": "diff"})
+
+    dat = dat.reset_index()
+    dat = dat.merge(diffs, how="left")
+
+    dat = dat[~dat["diff"].isna()].reset_index(drop=True)
     dat = dat.assign(qa_step=(~(dat["diff"] < dat[columns.step_col])).astype(int))
     dat = dat.drop(columns=["diff"])
     return dat
