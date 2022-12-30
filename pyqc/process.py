@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, List
 
 import pandas as pd
 
@@ -12,7 +12,8 @@ def check_observations(
     thresholds: pd.DataFrame,
     columns: Columns,
     *checks: Callable,
-    variance_df: pd.DataFrame = None
+    variance_df: pd.DataFrame = None,
+    keep_columns: List[str] = None
 ) -> pd.DataFrame:
     """Given a long-formatted dataframe of observations and a dataframe of qa/qc check thresholds for
     each element in the observations, perform all appropriate qa/qc checks.
@@ -29,10 +30,19 @@ def check_observations(
         daily standard deviation of daily observations of a given element. If provided it will be used
         for the persistence delta QA/QC check. If left blank, it is assumed that sub-hourly values are provided
         for an entire day in order to calculate the sd.
+        keep_columns (List[str]): A list of columns (or a pattern to match to columns) in the original dataframe that
+        should be kept and returned in the final dataframe. If left as None, 'station', 'datetime', 'element', 'value', and 'units'
+        columns will be kept. 
 
     Returns:
         pd.DataFrame: A new observations dataframe additional QA coluns
     """
+
+    if keep_columns is None:
+        keep_columns = ["station", "datetime", "element", "value", "units", "qa_"]
+        
+    if "qa_" not in keep_columns:
+        keep_columns.append("qa_")
 
     dat = dat.merge(thresholds, on=["station", "element"], how="left")
     kwargs = {"variance_df": variance_df} if variance_df else {}
@@ -40,7 +50,7 @@ def check_observations(
     for check in checks:
         dat = check(dat, columns=columns, **kwargs)
 
-    cols = dat.columns.to_series().str.contains("station|datetime|element|value|qa_")
+    cols = dat.columns.to_series().str.contains("|".join(keep_columns))
 
     dat = dat[dat.columns[cols]]
     return dat
