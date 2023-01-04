@@ -57,8 +57,9 @@ def check_observations(
 
 
 # thresholds = pd.read_csv("../test/elements.csv")
+# thresholds = thresholds[thresholds["date_end"].isna()]
 # thresholds = thresholds[['station', 'element', 'range_min', 'range_max', 'step_size', 'persistence_delta', 'spatial_sd']]
-# dat = pd.read_csv("~/git/mco/mesonet_app/zc_example.csv")
+# dat = pd.read_csv("../test/observations.csv")
 # dat = dat[['station', 'datetime', 'element', 'value']]
 # columns = Columns()
 # checks = [ck.check_range_pd, ck.check_step_pd]

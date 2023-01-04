@@ -134,6 +134,7 @@ def _calc_daily_variance(dat: pd.DataFrame, columns: Columns) -> pd.DataFrame:
 
     dat = dat.merge(sd, on=[columns.elem_col, "date"], how="left")
     dat = dat[["date", columns.elem_col, "sd"]]
+    dat = dat.drop_duplicates(ignore_index=True)
     return dat
 
 
