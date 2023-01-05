@@ -46,7 +46,6 @@ def check_observations(
 
     dat = dat.merge(thresholds, on=["station", "element"], how="left")
     kwargs = {"variance_df": variance_df} if variance_df else {}
-
     for check in checks:
         dat = check(dat, columns=columns, **kwargs)
 
