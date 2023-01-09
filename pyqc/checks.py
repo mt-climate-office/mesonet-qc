@@ -34,19 +34,34 @@ def check_range_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFram
     Returns:
         pd.DataFrame: Updated DataFrame that now has a `qa_range` column with associated QA/QC flag values.
     """
+
     dat = dat.assign(
         qa_range=dat[columns.compare_col].between(
             dat[columns.min_col], dat[columns.max_col], inclusive="both"
         )
     )
-    dat = dat.assign(qa_range=(-dat["qa_range"]).astype(int))
+    
+    if (columns.flag_min_col in dat.columns) and (columns.flag_max_col in dat.columns):
 
-    for i, row in dat.iterrows():
-        val = row['qa_range']
+        dat = dat.assign(
+            flag_range=dat[columns.compare_col].between(
+                dat[columns.flag_min_col], dat[columns.flag_max_col], inclusive="both"
+            )
+        )
+        dat = dat.assign(flag_range = np.where(
+                dat[columns.flag_min_col].isna(),
+                True, 
+                dat["flag_range"]
+            )
+        )
+        dat = dat.assign(qa_range = (~dat.qa_range | ~dat.flag_range).astype(int))
+    else:
+        dat = dat.assign(qa_range=(~dat["qa_range"]).astype(int))
 
-        if np.isnan(row['range_min']) or np.isnan(row['range_max']):
-            val = -1
-        dat.at[i, "qa_range"] = val
+    dat = dat.assign(qa_range = np.where(
+        dat['range_min'].isna(), -1, dat['qa_range']
+    ))
+
     return dat
 
 
@@ -81,7 +96,7 @@ def check_step_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFrame
     dat = dat.set_index([columns.dt_col])
 
     diffs = dat.groupby(columns.elem_col)[columns.compare_col].rolling(2).apply(
-            lambda x: x.iloc[1] - x.iloc[0]
+            lambda x: abs(x.iloc[1] - x.iloc[0])
         ).shift(-1).reset_index().rename(columns={"value": "diff"})
 
     if all(diffs['diff'].isna()):
@@ -98,12 +113,9 @@ def check_step_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFrame
     dat = dat.assign(qa_step=(~(dat["diff"] < dat[columns.step_col])).astype(int))
     dat = dat.drop(columns=["diff"])
 
-    for i, row in dat.iterrows():
-        val = row['qa_step']
-
-        if np.isnan(row['step_size']):
-            val = -1
-        dat.at[i, "qa_step"] = val
+    dat = dat.assign(qa_step = np.where(
+        dat[columns.step_col].isna(), -1, dat['qa_step']
+    ))
 
     return dat
 
@@ -173,10 +185,49 @@ def check_variance_pd(
     dat = dat.assign(qa_delta=(~(dat["sd"] > dat[columns.delta_col])).astype(int))
 
     dat = dat.drop(columns=["sd", "date"])
-    for i, row in dat.iterrows():
-        val = row['qa_delta']
 
-        if np.isnan(row['persistence_delta']):
-            val = -1
-        dat.at[i, "qa_delta"] = val
+    dat = dat.assign(qa_delta = np.where(
+        dat[columns.delta_col].isna(), -1, dat['qa_delta']
+    ))
+
     return dat
+
+
+def check_like_elements(
+    dat:pd.DataFrame, columns:Columns, **kwargs: pd.DataFrame
+) -> pd.DataFrame:
+    
+    qa_cols = dat.columns.to_series().str.contains("qa_")
+    split = {k: v for k, v in dat.groupby("element")}
+    out = []
+    for element, tmp in split.items():
+        try:
+            like_elems = tmp[columns.like_col].values[0].replace(",", "|").strip()
+            filt = dat[dat['element'].str.contains(like_elems)]
+            qa_sum = filt[filt.columns[qa_cols]].sum(axis=1)
+
+            filt = filt[["datetime", "element"]].assign(
+                qa_sum = qa_sum
+            ).reset_index(drop=True)
+
+            qa_sum = pd.DataFrame(
+                filt.pivot(
+                    index = "datetime", columns = "element", values = "qa_sum"
+                ).sum(axis=1)
+            ).reset_index()
+
+            qa_sum.columns = ['datetime', 'qa_like']
+
+            tmp = tmp.merge(qa_sum, how="left", on="datetime")
+        except AttributeError:
+            tmp = tmp.assign(qa_like=0)
+
+        out.append(tmp)
+    
+    out = pd.concat(out)
+
+    if 'like_check' in kwargs:
+        f = kwargs['like_check']
+        out = f(out, columns, **kwargs)
+
+    return out

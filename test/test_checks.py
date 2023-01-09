@@ -50,3 +50,12 @@ def test_check_variance_with_premade_deltas(observations, elements):
     dat = observations.merge(elements, on=["station", "element"], how="left")
     dat = ck.check_variance_pd(dat, columns, variance_df=premade)
     assert "qa_delta" in dat.columns, "Delta QA flag not properly added to DataFrame."
+
+
+def test_check_like_elements(observations, elements):
+    columns = Columns()
+    dat = observations.merge(elements, on=["station", "element"], how="left")
+    dat = ck.check_range_pd(dat, columns)
+    dat = ck.check_like_elements(dat, columns)
+    assert "qa_like" in dat.columns, "Step QA flag not properly added to DataFrame."
+
