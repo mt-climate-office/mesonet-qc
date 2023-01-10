@@ -55,9 +55,8 @@ def check_observations(
     return dat
 
 
-# thresholds = pd.read_csv("../test/absar_elems.csv")
+# thresholds = pd.read_csv("../test/elements.csv")
 # thresholds = thresholds[thresholds["date_end"].isna()]
-# thresholds = thresholds[['station', 'element', 'range_min', 'range_max', 'step_size', 'persistence_delta', 'spatial_sd']]
 # dat = pd.read_csv("../test/observations.csv")
 # dat = dat[['station', 'datetime', 'element', 'value']]
 # columns = Columns()

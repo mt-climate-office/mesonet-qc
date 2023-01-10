@@ -210,11 +210,11 @@ def check_like_elements(
                 qa_sum = qa_sum
             ).reset_index(drop=True)
 
-            qa_sum = pd.DataFrame(
-                filt.pivot(
+            qa_sum = filt.pivot(
                     index = "datetime", columns = "element", values = "qa_sum"
-                ).sum(axis=1)
-            ).reset_index()
+                ).rename_axis(None, axis=1).reset_index()
+
+            # From here join columns to form a QA bit string.
 
             qa_sum.columns = ['datetime', 'qa_like']
 
