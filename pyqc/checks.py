@@ -204,21 +204,45 @@ def check_like_elements(
         try:
             like_elems = tmp[columns.like_col].values[0].replace(",", "|").strip()
             filt = dat[dat['element'].str.contains(like_elems)]
-            qa_sum = filt[filt.columns[qa_cols]].sum(axis=1)
+
+            # Reversed because this order will be used to assign QA bit flags. 
+            # Binary number goes from R -> L so we need to reverse the elements to match.
+            like_elems = list(reversed(like_elems.split("|")))
+            like_elems.insert(0, "datetime")
+            like_elems = dict(zip(like_elems, range(len(like_elems))))
 
             filt = filt[["datetime", "element"]].assign(
-                qa_sum = qa_sum
-            ).reset_index(drop=True)
-
-            qa_sum = filt.pivot(
+                # Sum the QA columns
+                qa_sum = filt[filt.columns[qa_cols]].sum(axis=1)
+            ).reset_index(drop=True).pivot(
                     index = "datetime", columns = "element", values = "qa_sum"
-                ).rename_axis(None, axis=1).reset_index()
+            ).rename_axis(None, axis=1).reset_index()
 
-            # From here join columns to form a QA bit string.
+            new_col_order = [0] * 20
 
-            qa_sum.columns = ['datetime', 'qa_like']
+            for col in filt.columns:
+                for key in like_elems.keys():
+                    if key in col:
+                        new_col_order[like_elems[key]] = col
+                        break
+                    else:
+                        continue
+            new_col_order = [x for x in new_col_order if isinstance(x, str)]
 
-            tmp = tmp.merge(qa_sum, how="left", on="datetime")
+            filt = filt.assign(
+                qa_like = filt[new_col_order].iloc[:, 1:].applymap(
+                    lambda x: str(x)
+                ).apply(
+                    ''.join, axis=1
+                )
+            )[['datetime', 'qa_like']]
+            
+            filt = filt.assign(
+                qa_like = filt['qa_like'].apply(lambda x: int(x, 2))
+            )
+
+
+            tmp = tmp.merge(filt, how="left", on="datetime")
         except AttributeError:
             tmp = tmp.assign(qa_like=0)
 
