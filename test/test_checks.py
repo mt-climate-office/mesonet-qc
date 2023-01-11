@@ -37,6 +37,14 @@ def test_check_step_pd(observations, elements):
     assert "qa_step" in dat.columns, "Step QA flag not properly added to DataFrame."
 
 
+def test_check_step_pd_with_filter_first_false(observations, elements):
+    columns = Columns()
+    dat = observations.merge(elements, on=["station", "element"], how="left")
+    new = ck.check_step_pd(dat, columns, filter_first=False)
+    assert -1 in new['qa_step'].values, "The initial value was not kept properly."
+    assert dat.shape[0] == new.shape[0], "Rows were removed in the step check when they should not have."
+
+
 def test_check_variance_pd(observations, elements):
     columns = Columns()
     dat = observations.merge(elements, on=["station", "element"], how="left")

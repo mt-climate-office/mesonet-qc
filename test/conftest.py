@@ -14,6 +14,7 @@ def observations() -> pd.DataFrame:
 @pytest.fixture(scope="session")
 def elements() -> pd.DataFrame:
     dat = pd.read_csv("./test/elements.csv")
+    dat = dat[dat["date_end"].isna()]
     return dat
 
 

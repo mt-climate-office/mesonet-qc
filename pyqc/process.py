@@ -12,8 +12,8 @@ def check_observations(
     thresholds: pd.DataFrame,
     columns: Columns,
     *checks: Callable,
-    variance_df: pd.DataFrame = None,
-    keep_columns: List[str] = None
+    keep_columns: List[str] = None,
+    **kwargs
 ) -> pd.DataFrame:
     """Given a long-formatted dataframe of observations and a dataframe of qa/qc check thresholds for
     each element in the observations, perform all appropriate qa/qc checks.
@@ -26,13 +26,11 @@ def check_observations(
         columns (Columns): A Class mapping the column names of `dat` and `thresholds` to those used
         in the QA/QC checking functions.
         *checks (Callable): QA/QC functions from `check.py` that will be used to check the observations.
-        variance_df (pd.DataFrame): A DataFrame with columns `element` and `sd` and `date` that gives the
-        daily standard deviation of daily observations of a given element. If provided it will be used
-        for the persistence delta QA/QC check. If left blank, it is assumed that sub-hourly values are provided
-        for an entire day in order to calculate the sd.
         keep_columns (List[str]): A list of columns (or a pattern to match to columns) in the original dataframe that
         should be kept and returned in the final dataframe. If left as None, 'station', 'datetime', 'element', 'value', and 'units'
         columns will be kept.
+        **kwargs: Values to be passed to the check functions, these include `variance_df` and 
+        `filter_first`
 
     Returns:
         pd.DataFrame: A new observations dataframe additional QA coluns
@@ -53,7 +51,7 @@ def check_observations(
         keep_columns.append("qa_")
 
     dat = dat.merge(thresholds, on=["station", "element"], how="left")
-    kwargs = {"variance_df": variance_df} if variance_df else {}
+    # kwargs = {"variance_df": variance_df} if variance_df else {}
     for check in checks:
         dat = check(dat, columns=columns, **kwargs)
 

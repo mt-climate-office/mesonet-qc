@@ -78,13 +78,15 @@ def check_step(x: Numeric, prev: Numeric, threshold: Numeric) -> int:
     return 1
 
 
-def check_step_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFrame:
+def check_step_pd(dat: pd.DataFrame, columns: Columns, filter_first: bool = True, **kwargs) -> pd.DataFrame:
     """Check step size criteria and assign QA flag for all observations in a DataFrame
 
     Args:
         dat (pd.DataFrame): A DataFrame that has has both observations and criteria needed to run the step check.
         columns (Columns): A Columns object that provides column mappings for everything needed to run the test.
-
+        filter_first (bool): When doing the step check, the first value in a timeseries cannot be QA'd because
+        there is no previous value to compare it to. If `filter_first` is True, this first value is simply filtered
+        out. If it is set to False, the observation is kept and the `qa_step` column is assigned a fill value of -1.
     Returns:
         pd.DataFrame:  Updated DataFrame that now has a `qa_step` column with associated QA/QC flag values.
     """
@@ -111,10 +113,14 @@ def check_step_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFrame
     dat = dat.reset_index()
     dat = dat.merge(diffs, how="left")
 
-    dat = dat[~dat["diff"].isna()].reset_index(drop=True)
-    dat = dat.assign(qa_step=(~(dat["diff"] < dat[columns.step_col])).astype(int))
-    dat = dat.drop(columns=["diff"])
+    if filter_first:
+        dat = dat[~dat["diff"].isna()].reset_index(drop=True)
 
+    dat = dat.assign(qa_step=(~(dat["diff"] < dat[columns.step_col])).astype(int))
+    if not filter_first:
+        dat = dat.assign(qa_step = np.where(dat['diff'].isna(), -1, dat['qa_step']))
+        
+    dat = dat.drop(columns=["diff"])
     dat = dat.assign(qa_step=np.where(dat[columns.step_col].isna(), -1, dat["qa_step"]))
 
     return dat
