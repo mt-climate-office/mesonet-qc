@@ -37,6 +37,13 @@ def check_observations(
         pd.DataFrame: A new observations dataframe additional QA coluns
     """
 
+    # Make sure the like_element check is the final check that is done. 
+    check_names = [x.__name__ for x in checks]
+    if ("check_like_elements" in check_names) and (check_names[-1] != "check_like_elements"):
+        func = checks.pop(check_names.index("check_like_elements"))
+        checks.append(func)
+
+
     if keep_columns is None:
         keep_columns = ["station", "datetime", "^element$", "value", "units", "qa_"]
         
