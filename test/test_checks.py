@@ -58,4 +58,3 @@ def test_check_like_elements(observations, elements):
     dat = ck.check_range_pd(dat, columns)
     dat = ck.check_like_elements(dat, columns)
     assert "qa_shared" in dat.columns, "Step QA flag not properly added to DataFrame."
-

@@ -3,6 +3,7 @@ from typing import Callable, List
 import pandas as pd
 
 import pyqc.checks as ck
+
 from .columns import Columns
 
 
@@ -31,22 +32,23 @@ def check_observations(
         for an entire day in order to calculate the sd.
         keep_columns (List[str]): A list of columns (or a pattern to match to columns) in the original dataframe that
         should be kept and returned in the final dataframe. If left as None, 'station', 'datetime', 'element', 'value', and 'units'
-        columns will be kept. 
+        columns will be kept.
 
     Returns:
         pd.DataFrame: A new observations dataframe additional QA coluns
     """
 
-    # Make sure the like_element check is the final check that is done. 
+    # Make sure the like_element check is the final check that is done.
     check_names = [x.__name__ for x in checks]
-    if ("check_like_elements" in check_names) and (check_names[-1] != "check_like_elements"):
+    if ("check_like_elements" in check_names) and (
+        check_names[-1] != "check_like_elements"
+    ):
         func = checks.pop(check_names.index("check_like_elements"))
         checks.append(func)
 
-
     if keep_columns is None:
         keep_columns = ["station", "datetime", "^element$", "value", "units", "qa_"]
-        
+
     if "qa_" not in keep_columns:
         keep_columns.append("qa_")
 
@@ -60,6 +62,7 @@ def check_observations(
     dat = dat[dat.columns[cols]]
     return dat
 
+
 # import numpy as np
 
 # thresholds = pd.read_csv("../test/elements.csv")
@@ -72,4 +75,4 @@ def check_observations(
 # dat = check_observations(dat, thresholds, columns, *checks)
 
 
-# dat = dat.merge(thresholds, on=["station", "element"], how="left")a
+# dat = dat.merge(thresholds, on=["station", "element"], how="left")

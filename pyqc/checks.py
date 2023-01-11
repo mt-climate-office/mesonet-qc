@@ -40,7 +40,7 @@ def check_range_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFram
             dat[columns.min_col], dat[columns.max_col], inclusive="both"
         )
     )
-    
+
     if (columns.flag_min_col in dat.columns) and (columns.flag_max_col in dat.columns):
 
         dat = dat.assign(
@@ -48,19 +48,16 @@ def check_range_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFram
                 dat[columns.flag_min_col], dat[columns.flag_max_col], inclusive="both"
             )
         )
-        dat = dat.assign(flag_range = np.where(
-                dat[columns.flag_min_col].isna(),
-                True, 
-                dat["flag_range"]
+        dat = dat.assign(
+            flag_range=np.where(
+                dat[columns.flag_min_col].isna(), True, dat["flag_range"]
             )
         )
-        dat = dat.assign(qa_range = (~dat.qa_range | ~dat.flag_range).astype(int))
+        dat = dat.assign(qa_range=(~dat.qa_range | ~dat.flag_range).astype(int))
     else:
         dat = dat.assign(qa_range=(~dat["qa_range"]).astype(int))
 
-    dat = dat.assign(qa_range = np.where(
-        dat['range_min'].isna(), -1, dat['qa_range']
-    ))
+    dat = dat.assign(qa_range=np.where(dat["range_min"].isna(), -1, dat["qa_range"]))
 
     return dat
 
@@ -91,18 +88,23 @@ def check_step_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFrame
     Returns:
         pd.DataFrame:  Updated DataFrame that now has a `qa_step` column with associated QA/QC flag values.
     """
-    dat = dat.sort_values([columns.elem_col, columns.dt_col], ascending=False, ignore_index=True)
+    dat = dat.sort_values(
+        [columns.elem_col, columns.dt_col], ascending=False, ignore_index=True
+    )
 
     dat = dat.set_index([columns.dt_col])
 
-    diffs = dat.groupby(columns.elem_col)[columns.compare_col].rolling(2).apply(
-            lambda x: abs(x.iloc[1] - x.iloc[0])
-        ).shift(-1).reset_index().rename(columns={"value": "diff"})
+    diffs = (
+        dat.groupby(columns.elem_col)[columns.compare_col]
+        .rolling(2)
+        .apply(lambda x: abs(x.iloc[1] - x.iloc[0]))
+        .shift(-1)
+        .reset_index()
+        .rename(columns={"value": "diff"})
+    )
 
-    if all(diffs['diff'].isna()):
-        dat = dat.assign(
-            qa_step = -1
-        )
+    if all(diffs["diff"].isna()):
+        dat = dat.assign(qa_step=-1)
         dat = dat.reset_index()
         return dat
 
@@ -113,9 +115,7 @@ def check_step_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFrame
     dat = dat.assign(qa_step=(~(dat["diff"] < dat[columns.step_col])).astype(int))
     dat = dat.drop(columns=["diff"])
 
-    dat = dat.assign(qa_step = np.where(
-        dat[columns.step_col].isna(), -1, dat['qa_step']
-    ))
+    dat = dat.assign(qa_step=np.where(dat[columns.step_col].isna(), -1, dat["qa_step"]))
 
     return dat
 
@@ -186,23 +186,23 @@ def check_variance_pd(
 
     dat = dat.drop(columns=["sd", "date"])
 
-    dat = dat.assign(qa_delta = np.where(
-        dat[columns.delta_col].isna(), -1, dat['qa_delta']
-    ))
+    dat = dat.assign(
+        qa_delta=np.where(dat[columns.delta_col].isna(), -1, dat["qa_delta"])
+    )
 
     return dat
 
 
 def check_like_elements(
-    dat:pd.DataFrame, columns:Columns, **kwargs: pd.DataFrame
+    dat: pd.DataFrame, columns: Columns, **kwargs: pd.DataFrame
 ) -> pd.DataFrame:
-    
+
     qa_cols = dat.columns.to_series().str.contains("qa_")
     split = {k: v for k, v in dat.groupby("element")}
     out = []
 
     for element, tmp in split.items():
-        try: 
+        try:
             elev = int(element.split("_")[-1])
         except ValueError:
             elev = None
@@ -211,9 +211,9 @@ def check_like_elements(
             like_elems = tmp[columns.shared_col].values[0].split(",")
             if elev:
                 like_elems = [x + f"_{elev:04}" for x in like_elems]
-            filt = dat[dat['element'].isin(like_elems)]
+            filt = dat[dat["element"].isin(like_elems)]
 
-            # Reversed because this order will be used to assign QA bit flags. 
+            # Reversed because this order will be used to assign QA bit flags.
             # Binary number goes from R -> L so we need to reverse the elements to match.
             like_elems = list(reversed(like_elems))
             like_elems.insert(0, "datetime")
@@ -221,37 +221,37 @@ def check_like_elements(
 
             filt = filt[["datetime", "element"]].assign(
                 # Sum the QA columns
-                qa_sum = filt[filt.columns[qa_cols]].sum(axis=1)
-            ).reset_index(drop=True).pivot(
-                    index = "datetime", columns = "element", values = "qa_sum"
-            ).rename_axis(None, axis=1).reset_index()
+                qa_sum=filt[filt.columns[qa_cols]].sum(axis=1)
+            )
+            filt = (
+                filt.assign(qa_sum=filt["qa_sum"].apply(lambda x: min(1, x)))
+                .reset_index(drop=True)
+                .pivot(index="datetime", columns="element", values="qa_sum")
+                .rename_axis(None, axis=1)
+                .reset_index()
+            )
 
             # Join the columns to create a binary string
             filt = filt.assign(
-                qa_shared = filt[
+                qa_shared=filt[
                     # Reorder the columns so they are in the same order as specified in the QA column
                     sorted(filt.columns, key=lambda x: like_elems[x])
-                ].iloc[:, 1:].applymap(
-                    lambda x: str(x)
-                ).apply(
-                    ''.join, axis=1
-                )
-            )[['datetime', 'qa_shared']]
-            
-            # Convert binary string to integer. 
-            filt = filt.assign(
-                qa_shared = filt['qa_shared'].apply(lambda x: int(x, 2))
-            )
+                ]
+                .iloc[:, 1:]
+                .applymap(lambda x: str(x))
+                .apply("".join, axis=1)
+            )[["datetime", "qa_shared"]]
+
+            # Convert binary string to integer.
+            filt = filt.assign(qa_shared=filt["qa_shared"].apply(lambda x: int(x, 2)))
 
             tmp = tmp.merge(filt, how="left", on="datetime")
         except AttributeError:
             tmp = tmp.assign(qa_shared=0)
 
         out.append(tmp)
-    
+
     out = pd.concat(out)
-    out = out.assign(
-        qa_shared = out['qa_shared'].fillna(0)
-    )
+    out = out.assign(qa_shared=out["qa_shared"].fillna(0))
 
     return out
