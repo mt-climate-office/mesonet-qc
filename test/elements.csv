@@ -1,45 +1,45 @@
-station,element,date_start,date_end,range_min,range_max,type,manufacturer,model,serial_number,step_size,persistence_delta,spatial_sd,flag_min,flag_max,like_element
-aceabsar,air_temp_0200,2021-06-02,2022-03-30,-40,70,RH/T,CSI,HygroVUE10,E1530,10,0.1,3,,,air_temp_logger
-aceabsar,air_temp_0200,2022-03-30,2022-03-30,-80,60,RH/T,Vaisala,HMP155E,U0940660,10,0.1,3,,,air_temp_logger
-aceabsar,air_temp_0200,2022-03-30,,-80,60,RH/T,Vaisala,HMP155E,U0940850,10,0.1,3,,,air_temp_logger
-aceabsar,bp,2021-06-02,,60,110,Barometer,Setra,278 CS100,7599141,10,0.1,1.5,,,bp_logger
-aceabsar,ppt,2021-07-11,,0,4000,Precipitation,Ott Hydromet,Pluvio2 L 400,L100452357,25,0,50,,,ppt_max_rate
-aceabsar,ppt_max_rate,2021-07-11,,0,3000,Precipitation,Ott Hydromet,Pluvio2 L 400,L100452357,125,0,50,,,ppt
-aceabsar,rh,2021-06-02,2022-03-30,0,100,RH/T,CSI,HygroVUE10,E1530,20,0.1,20,,,
-aceabsar,rh,2022-03-30,2022-03-30,0,100,RH/T,Vaisala,HMP155E,U0940660,20,0.1,20,,,
-aceabsar,rh,2022-03-30,,0,100,RH/T,Vaisala,HMP155E,U0940850,20,0.1,20,,,
-aceabsar,snow_depth,2021-10-05,2022-06-06,0,950,Snow,CSI,SR50A-L,13872,10,0,,,,snow_depth_q
-aceabsar,snow_depth,2022-10-21,,0,950,Snow,CSI,SnowVUE 10,10040,10,0,,,,snow_depth_q
-aceabsar,snow_depth_q,2021-10-05,2022-06-06,0,600,Snow,CSI,SR50A-L,13872,600,0,,,,snow_depth
-aceabsar,snow_depth_q,2022-10-21,,0,600,Snow,CSI,SnowVUE 10,10040,600,0,,,,snow_depth
-aceabsar,soil_ec_blk_0005,2021-06-02,,0,6,Soil,Acclima,TDR-310N,17007800,0.1,0.0001,,,,"soil_ec_perm,soil_ec_por,soil_temp,soil_vwc"
-aceabsar,soil_ec_blk_0010,2021-06-02,,0,6,Soil,Acclima,TDR-310N,17007801,0.1,0.0001,,,,"soil_ec_perm,soil_ec_por,soil_temp,soil_vwc"
-aceabsar,soil_ec_blk_0020,2021-06-02,,0,6,Soil,Acclima,TDR-310N,17007804,0.1,0.0001,,,,"soil_ec_perm,soil_ec_por,soil_temp,soil_vwc"
-aceabsar,soil_ec_blk_0050,2021-06-02,,0,6,Soil,Acclima,TDR-310N,17007805,0.1,0.0001,,,,"soil_ec_perm,soil_ec_por,soil_temp,soil_vwc"
-aceabsar,soil_ec_blk_0100,2021-06-02,,0,6,Soil,Acclima,TDR-310N,17007808,0.1,0.0001,,,,"soil_ec_perm,soil_ec_por,soil_temp,soil_vwc"
-aceabsar,soil_ec_perm_0005,2021-06-02,,1,100,Soil,Acclima,TDR-310N,17007800,0.1,0.0001,,,,"soil_ec_blk,soil_ec_por,soil_temp,soil_vwc"
-aceabsar,soil_ec_perm_0010,2021-06-02,,1,100,Soil,Acclima,TDR-310N,17007801,0.1,0.0001,,,,"soil_ec_blk,soil_ec_por,soil_temp,soil_vwc"
-aceabsar,soil_ec_perm_0020,2021-06-02,,1,100,Soil,Acclima,TDR-310N,17007804,0.1,0.0001,,,,"soil_ec_blk,soil_ec_por,soil_temp,soil_vwc"
-aceabsar,soil_ec_perm_0050,2021-06-02,,1,100,Soil,Acclima,TDR-310N,17007805,0.1,0.0001,,,,"soil_ec_blk,soil_ec_por,soil_temp,soil_vwc"
-aceabsar,soil_ec_perm_0100,2021-06-02,,1,100,Soil,Acclima,TDR-310N,17007808,0.1,0.0001,,,,"soil_ec_blk,soil_ec_por,soil_temp,soil_vwc"
-aceabsar,soil_ec_por_0005,2021-06-02,,0,6,Soil,Acclima,TDR-310N,17007800,0.1,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_temp,soil_vwc"
-aceabsar,soil_ec_por_0010,2021-06-02,,0,6,Soil,Acclima,TDR-310N,17007801,0.1,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_temp,soil_vwc"
-aceabsar,soil_ec_por_0020,2021-06-02,,0,6,Soil,Acclima,TDR-310N,17007804,0.1,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_temp,soil_vwc"
-aceabsar,soil_ec_por_0050,2021-06-02,,0,6,Soil,Acclima,TDR-310N,17007805,0.1,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_temp,soil_vwc"
-aceabsar,soil_ec_por_0100,2021-06-02,,0,6,Soil,Acclima,TDR-310N,17007808,0.1,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_temp,soil_vwc"
-aceabsar,soil_temp_0005,2021-06-02,,-40,60,Soil,Acclima,TDR-310N,17007800,10,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_vwc"
-aceabsar,soil_temp_0010,2021-06-02,,-40,60,Soil,Acclima,TDR-310N,17007801,10,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_vwc"
-aceabsar,soil_temp_0020,2021-06-02,,-40,60,Soil,Acclima,TDR-310N,17007804,10,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_vwc"
-aceabsar,soil_temp_0050,2021-06-02,,-40,60,Soil,Acclima,TDR-310N,17007805,10,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_vwc"
-aceabsar,soil_temp_0100,2021-06-02,,-40,60,Soil,Acclima,TDR-310N,17007808,10,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_vwc"
-aceabsar,soil_vwc_0005,2021-06-02,,0,100,Soil,Acclima,TDR-310N,17007800,0.2,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_temp"
-aceabsar,soil_vwc_0010,2021-06-02,,0,100,Soil,Acclima,TDR-310N,17007801,0.2,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_temp"
-aceabsar,soil_vwc_0020,2021-06-02,,0,100,Soil,Acclima,TDR-310N,17007804,0.2,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_temp"
-aceabsar,soil_vwc_0050,2021-06-02,,0,100,Soil,Acclima,TDR-310N,17007805,0.2,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_temp"
-aceabsar,soil_vwc_0100,2021-06-02,,0,100,Soil,Acclima,TDR-310N,17007808,0.2,0.0001,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_temp"
-aceabsar,sol_rad,2021-06-02,2022-03-30,0,2000,Pyranometer,Apogee,CS320-10-P,2694,800,0.1,400,,,
-aceabsar,sol_rad,2022-03-31,,0,2000,Pyranometer,Apogee,SP-510-SS,2384,800,0.1,400,,,
-aceabsar,wind_dir_1000,2021-06-02,,0,359,Wind,RM Young,9106,SE00182095,360,1,45,,,"wind_dir_sd,wind_spd,windgust"
-aceabsar,wind_dir_sd_1000,2021-06-02,,0,180,Wind,RM Young,9106,SE00182095,90,1,60,,,"wind_dir,wind_spd,windgust"
-aceabsar,windgust_1000,2021-06-02,,0,100,Wind,RM Young,9106,SE00182095,40,0.5,5,,,"wind_dir,wind_dir_sd,wind_spd"
-aceabsar,wind_spd_1000,2021-06-02,,0,100,Wind,RM Young,9106,SE00182095,40,0.5,5,,,"wind_dir,wind_dir_sd,wind_spd"
+station,element,date_start,date_end,range_min,range_max,type,manufacturer,model,serial_number,step_size,persistence_delta,spatial_sd,flag_min,flag_max,like_element,shared_sensor
+aceabsar,air_temp_0200,2021-06-02,2022-03-30,-40.0,70.0,RH/T,CSI,HygroVUE10,E1530,10.0,0.1,3.0,,,air_temp_logger,
+aceabsar,air_temp_0200,2022-03-30,2022-03-30,-80.0,60.0,RH/T,Vaisala,HMP155E,U0940660,10.0,0.1,3.0,,,air_temp_logger,
+aceabsar,air_temp_0200,2022-03-30,,-80.0,60.0,RH/T,Vaisala,HMP155E,U0940850,10.0,0.1,3.0,,,air_temp_logger,
+aceabsar,bp,2021-06-02,,60.0,110.0,Barometer,Setra,278 CS100,7599141,10.0,0.1,1.5,,,bp_logger,
+aceabsar,ppt,2021-07-11,,0.0,4000.0,Precipitation,Ott Hydromet,Pluvio2 L 400,L100452357,25.0,0.0,50.0,,,,ppt_max_rate
+aceabsar,ppt_max_rate,2021-07-11,,0.0,3000.0,Precipitation,Ott Hydromet,Pluvio2 L 400,L100452357,125.0,0.0,50.0,,,,ppt
+aceabsar,rh,2021-06-02,2022-03-30,0.0,100.0,RH/T,CSI,HygroVUE10,E1530,20.0,0.1,20.0,,,,
+aceabsar,rh,2022-03-30,2022-03-30,0.0,100.0,RH/T,Vaisala,HMP155E,U0940660,20.0,0.1,20.0,,,,
+aceabsar,rh,2022-03-30,,0.0,100.0,RH/T,Vaisala,HMP155E,U0940850,20.0,0.1,20.0,,,,
+aceabsar,snow_depth,2021-10-05,2022-06-06,0.0,950.0,Snow,CSI,SR50A-L,13872,10.0,0.0,,,,,snow_depth_q
+aceabsar,snow_depth,2022-10-21,,0.0,950.0,Snow,CSI,SnowVUE 10,10040,10.0,0.0,,,,,snow_depth_q
+aceabsar,snow_depth_q,2021-10-05,2022-06-06,0.0,600.0,Snow,CSI,SR50A-L,13872,600.0,0.0,,1.0,300.0,,snow_depth
+aceabsar,snow_depth_q,2022-10-21,,0.0,600.0,Snow,CSI,SnowVUE 10,10040,600.0,0.0,,1.0,300.0,,snow_depth
+aceabsar,soil_ec_blk_0005,2021-06-02,,0.0,6.0,Soil,Acclima,TDR-310N,17007800,0.1,0.0001,,,,,"soil_ec_perm,soil_ec_por,soil_temp,soil_vwc"
+aceabsar,soil_ec_blk_0010,2021-06-02,,0.0,6.0,Soil,Acclima,TDR-310N,17007801,0.1,0.0001,,,,,"soil_ec_perm,soil_ec_por,soil_temp,soil_vwc"
+aceabsar,soil_ec_blk_0020,2021-06-02,,0.0,6.0,Soil,Acclima,TDR-310N,17007804,0.1,0.0001,,,,,"soil_ec_perm,soil_ec_por,soil_temp,soil_vwc"
+aceabsar,soil_ec_blk_0050,2021-06-02,,0.0,6.0,Soil,Acclima,TDR-310N,17007805,0.1,0.0001,,,,,"soil_ec_perm,soil_ec_por,soil_temp,soil_vwc"
+aceabsar,soil_ec_blk_0100,2021-06-02,,0.0,6.0,Soil,Acclima,TDR-310N,17007808,0.1,0.0001,,,,,"soil_ec_perm,soil_ec_por,soil_temp,soil_vwc"
+aceabsar,soil_ec_perm_0005,2021-06-02,,1.0,100.0,Soil,Acclima,TDR-310N,17007800,0.1,0.0001,,,,,"soil_ec_blk,soil_ec_por,soil_temp,soil_vwc"
+aceabsar,soil_ec_perm_0010,2021-06-02,,1.0,100.0,Soil,Acclima,TDR-310N,17007801,0.1,0.0001,,,,,"soil_ec_blk,soil_ec_por,soil_temp,soil_vwc"
+aceabsar,soil_ec_perm_0020,2021-06-02,,1.0,100.0,Soil,Acclima,TDR-310N,17007804,0.1,0.0001,,,,,"soil_ec_blk,soil_ec_por,soil_temp,soil_vwc"
+aceabsar,soil_ec_perm_0050,2021-06-02,,1.0,100.0,Soil,Acclima,TDR-310N,17007805,0.1,0.0001,,,,,"soil_ec_blk,soil_ec_por,soil_temp,soil_vwc"
+aceabsar,soil_ec_perm_0100,2021-06-02,,1.0,100.0,Soil,Acclima,TDR-310N,17007808,0.1,0.0001,,,,,"soil_ec_blk,soil_ec_por,soil_temp,soil_vwc"
+aceabsar,soil_ec_por_0005,2021-06-02,,0.0,6.0,Soil,Acclima,TDR-310N,17007800,0.1,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_temp,soil_vwc"
+aceabsar,soil_ec_por_0010,2021-06-02,,0.0,6.0,Soil,Acclima,TDR-310N,17007801,0.1,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_temp,soil_vwc"
+aceabsar,soil_ec_por_0020,2021-06-02,,0.0,6.0,Soil,Acclima,TDR-310N,17007804,0.1,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_temp,soil_vwc"
+aceabsar,soil_ec_por_0050,2021-06-02,,0.0,6.0,Soil,Acclima,TDR-310N,17007805,0.1,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_temp,soil_vwc"
+aceabsar,soil_ec_por_0100,2021-06-02,,0.0,6.0,Soil,Acclima,TDR-310N,17007808,0.1,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_temp,soil_vwc"
+aceabsar,soil_temp_0005,2021-06-02,,-40.0,60.0,Soil,Acclima,TDR-310N,17007800,10.0,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_vwc"
+aceabsar,soil_temp_0010,2021-06-02,,-40.0,60.0,Soil,Acclima,TDR-310N,17007801,10.0,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_vwc"
+aceabsar,soil_temp_0020,2021-06-02,,-40.0,60.0,Soil,Acclima,TDR-310N,17007804,10.0,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_vwc"
+aceabsar,soil_temp_0050,2021-06-02,,-40.0,60.0,Soil,Acclima,TDR-310N,17007805,10.0,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_vwc"
+aceabsar,soil_temp_0100,2021-06-02,,-40.0,60.0,Soil,Acclima,TDR-310N,17007808,10.0,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_vwc"
+aceabsar,soil_vwc_0005,2021-06-02,,0.0,100.0,Soil,Acclima,TDR-310N,17007800,0.2,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_temp"
+aceabsar,soil_vwc_0010,2021-06-02,,0.0,100.0,Soil,Acclima,TDR-310N,17007801,0.2,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_temp"
+aceabsar,soil_vwc_0020,2021-06-02,,0.0,100.0,Soil,Acclima,TDR-310N,17007804,0.2,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_temp"
+aceabsar,soil_vwc_0050,2021-06-02,,0.0,100.0,Soil,Acclima,TDR-310N,17007805,0.2,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_temp"
+aceabsar,soil_vwc_0100,2021-06-02,,0.0,100.0,Soil,Acclima,TDR-310N,17007808,0.2,0.0001,,,,,"soil_ec_blk,soil_ec_perm,soil_ec_por,soil_temp"
+aceabsar,sol_rad,2021-06-02,2022-03-30,0.0,2000.0,Pyranometer,Apogee,CS320-10-P,2694,800.0,0.1,400.0,,,,
+aceabsar,sol_rad,2022-03-31,,0.0,2000.0,Pyranometer,Apogee,SP-510-SS,2384,800.0,0.1,400.0,,,,
+aceabsar,wind_dir_1000,2021-06-02,,0.0,359.0,Wind,RM Young,9106,SE00182095,360.0,1.0,45.0,,,,"wind_dir_sd,wind_spd,windgust"
+aceabsar,wind_dir_sd_1000,2021-06-02,,0.0,180.0,Wind,RM Young,9106,SE00182095,90.0,1.0,60.0,,,,"wind_dir,wind_spd,windgust"
+aceabsar,windgust_1000,2021-06-02,,0.0,100.0,Wind,RM Young,9106,SE00182095,40.0,0.5,5.0,,,,"wind_dir,wind_dir_sd,wind_spd"
+aceabsar,wind_spd_1000,2021-06-02,,0.0,100.0,Wind,RM Young,9106,SE00182095,40.0,0.5,5.0,,,,"wind_dir,wind_dir_sd,wind_spd"

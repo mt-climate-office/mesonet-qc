@@ -17,6 +17,7 @@ class Columns:
         elem_col (str): The column specifying the variable that each observation is.
         delta_col (str): The column speficying the minimum allowable standard deviation across a day of observations.
         like_col (str): The column specifying which other elements a given observation should be compared to.
+        shared_sensor(str): The column specifying which other elements originate from the same instrument on a station. 
     """
 
     compare_col: str = "value"
@@ -29,3 +30,4 @@ class Columns:
     elem_col: str = "element"
     delta_col: str = "persistence_delta"
     like_col: str = "like_element"
+    shared_col: str = "shared_sensor"

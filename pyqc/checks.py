@@ -200,14 +200,22 @@ def check_like_elements(
     qa_cols = dat.columns.to_series().str.contains("qa_")
     split = {k: v for k, v in dat.groupby("element")}
     out = []
+
     for element, tmp in split.items():
+        try: 
+            elev = int(element.split("_")[-1])
+        except ValueError:
+            elev = None
+
         try:
-            like_elems = tmp[columns.like_col].values[0].replace(",", "|").strip()
-            filt = dat[dat['element'].str.contains(like_elems)]
+            like_elems = tmp[columns.shared_col].values[0].split(",")
+            if elev:
+                like_elems = [x + f"_{elev:04}" for x in like_elems]
+            filt = dat[dat['element'].isin(like_elems)]
 
             # Reversed because this order will be used to assign QA bit flags. 
             # Binary number goes from R -> L so we need to reverse the elements to match.
-            like_elems = list(reversed(like_elems.split("|")))
+            like_elems = list(reversed(like_elems))
             like_elems.insert(0, "datetime")
             like_elems = dict(zip(like_elems, range(len(like_elems))))
 
@@ -218,40 +226,32 @@ def check_like_elements(
                     index = "datetime", columns = "element", values = "qa_sum"
             ).rename_axis(None, axis=1).reset_index()
 
-            new_col_order = [0] * 20
-
-            for col in filt.columns:
-                for key in like_elems.keys():
-                    if key in col:
-                        new_col_order[like_elems[key]] = col
-                        break
-                    else:
-                        continue
-            new_col_order = [x for x in new_col_order if isinstance(x, str)]
-
+            # Join the columns to create a binary string
             filt = filt.assign(
-                qa_like = filt[new_col_order].iloc[:, 1:].applymap(
+                qa_shared = filt[
+                    # Reorder the columns so they are in the same order as specified in the QA column
+                    sorted(filt.columns, key=lambda x: like_elems[x])
+                ].iloc[:, 1:].applymap(
                     lambda x: str(x)
                 ).apply(
                     ''.join, axis=1
                 )
-            )[['datetime', 'qa_like']]
+            )[['datetime', 'qa_shared']]
             
+            # Convert binary string to integer. 
             filt = filt.assign(
-                qa_like = filt['qa_like'].apply(lambda x: int(x, 2))
+                qa_shared = filt['qa_shared'].apply(lambda x: int(x, 2))
             )
-
 
             tmp = tmp.merge(filt, how="left", on="datetime")
         except AttributeError:
-            tmp = tmp.assign(qa_like=0)
+            tmp = tmp.assign(qa_shared=0)
 
         out.append(tmp)
     
     out = pd.concat(out)
-
-    if 'like_check' in kwargs:
-        f = kwargs['like_check']
-        out = f(out, columns, **kwargs)
+    out = out.assign(
+        qa_shared = out['qa_shared'].fillna(0)
+    )
 
     return out

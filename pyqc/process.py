@@ -3,7 +3,6 @@ from typing import Callable, List
 import pandas as pd
 
 import pyqc.checks as ck
-
 from .columns import Columns
 
 
@@ -39,7 +38,7 @@ def check_observations(
     """
 
     if keep_columns is None:
-        keep_columns = ["station", "datetime", "element", "value", "units", "qa_"]
+        keep_columns = ["station", "datetime", "^element$", "value", "units", "qa_"]
         
     if "qa_" not in keep_columns:
         keep_columns.append("qa_")
@@ -54,11 +53,16 @@ def check_observations(
     dat = dat[dat.columns[cols]]
     return dat
 
+# import numpy as np
 
 # thresholds = pd.read_csv("../test/elements.csv")
 # thresholds = thresholds[thresholds["date_end"].isna()]
 # dat = pd.read_csv("../test/observations.csv")
 # dat = dat[['station', 'datetime', 'element', 'value']]
+
 # columns = Columns()
-# checks = [ck.check_range_pd, ck.check_step_pd]
-# check_observations(dat, thresholds, columns, ck.check_range_pd, ck.check_step_pd, ck.check_variance_pd)
+# checks = [ck.check_range_pd, ck.check_step_pd, ck.check_like_elements]
+# dat = check_observations(dat, thresholds, columns, *checks)
+
+
+# dat = dat.merge(thresholds, on=["station", "element"], how="left")a
