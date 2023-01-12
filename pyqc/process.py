@@ -62,15 +62,12 @@ def check_observations(
 
 
 # import numpy as np
-
 # thresholds = pd.read_csv("../test/elements.csv")
 # thresholds = thresholds[thresholds["date_end"].isna()]
 # dat = pd.read_csv("../test/observations.csv")
 # dat = dat[['station', 'datetime', 'element', 'value']]
 
 # columns = Columns()
-# checks = [ck.check_range_pd, ck.check_step_pd, ck.check_like_elements]
-# dat = check_observations(dat, thresholds, columns, *checks)
-
-
+# checks = [check_range_pd, check_step_pd]
+# dat = check_observations(dat, thresholds, columns, *checks, filter_first=True)
 # dat = dat.merge(thresholds, on=["station", "element"], how="left")
