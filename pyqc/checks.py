@@ -227,6 +227,8 @@ def check_like_elements(
 
             filt = filt[["datetime", "element"]].assign(
                 # Sum the QA columns
+                # TODO: Flag value as -1 here if one of the input QA columns is -1. 
+                # Something like filt[filt.columns[qa_cols]].apply(lambda x: -1 if -1 in x else sum(x), axis=1)
                 qa_sum=filt[filt.columns[qa_cols]].sum(axis=1)
             )
             filt = (
@@ -249,7 +251,7 @@ def check_like_elements(
             )[["datetime", "qa_shared"]]
 
             # Convert binary string to integer.
-            filt = filt.assign(qa_shared=filt["qa_shared"].apply(lambda x: int(x, 2)))
+            filt = filt.assign(qa_shared=filt["qa_shared"].apply(lambda x: -1 if '-1' in x else int(x, 2)))
 
             tmp = tmp.merge(filt, how="left", on="datetime")
         except AttributeError:
