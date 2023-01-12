@@ -188,7 +188,7 @@ def check_variance_pd(
         dat = dat.assign(date=pd.to_datetime(dat[columns.dt_col]).dt.date)
         dat = dat.merge(var, on=[columns.elem_col, "date"], how="left")
 
-    dat = dat.assign(qa_delta=(~(dat["sd"] > dat[columns.delta_col])).astype(int))
+    dat = dat.assign(qa_delta=(~(dat["sd"] >= dat[columns.delta_col])).astype(int))
 
     dat = dat.drop(columns=["sd", "date"])
 
