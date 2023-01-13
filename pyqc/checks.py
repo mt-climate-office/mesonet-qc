@@ -245,7 +245,7 @@ def check_like_elements(
                     sorted(filt.columns, key=lambda x: like_elems[x])
                 ]
                 .iloc[:, 1:]
-                .applymap(lambda x: str(int(x)))
+                .applymap(lambda x: str(int(x)).replace("-1", "0"))
                 .apply("".join, axis=1)
             )[["datetime", "qa_shared"]]
 
