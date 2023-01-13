@@ -235,6 +235,7 @@ def check_like_elements(
                 .pivot(index="datetime", columns="element", values="qa_sum")
                 .rename_axis(None, axis=1)
                 .reset_index()
+                .fillna(1)
             )
 
             # Join the columns to create a binary string
@@ -244,7 +245,7 @@ def check_like_elements(
                     sorted(filt.columns, key=lambda x: like_elems[x])
                 ]
                 .iloc[:, 1:]
-                .applymap(lambda x: str(x))
+                .applymap(lambda x: str(int(x)))
                 .apply("".join, axis=1)
             )[["datetime", "qa_shared"]]
 
