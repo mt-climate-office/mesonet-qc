@@ -3,7 +3,7 @@ from typing import Callable, List
 import pandas as pd
 
 import pyqc.checks as ck
-
+# from pyqc.columns import Columns
 from .columns import Columns
 
 
@@ -67,7 +67,9 @@ def check_observations(
 # dat = pd.read_csv("../test/observations.csv")
 # dat = dat[['station', 'datetime', 'element', 'value']]
 
+# thresholds = pd.read_csv("~/Desktop/thresholds.csv")
+# dat = pd.read_csv("~/Desktop/dat.csv")
 # columns = Columns()
-# checks = [check_range_pd, check_step_pd]
+# checks = [ck.check_range_pd, ck.check_step_pd, check_like_elements]
 # dat = check_observations(dat, thresholds, columns, *checks, filter_first=True)
 # dat = dat.merge(thresholds, on=["station", "element"], how="left")

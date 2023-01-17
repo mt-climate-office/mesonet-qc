@@ -255,6 +255,9 @@ def check_like_elements(
             tmp = tmp.merge(filt, how="left", on="datetime")
         except AttributeError:
             tmp = tmp.assign(qa_shared=0)
+        except ValueError:
+            # This means there is an airtable error. 
+            tmp = tmp.assign(qa_shared=-1)
 
         out.append(tmp)
 
