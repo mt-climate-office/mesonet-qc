@@ -56,20 +56,24 @@ def check_observations(
         dat = check(dat, columns=columns, **kwargs)
 
     cols = dat.columns.to_series().str.contains("|".join(keep_columns))
-
     dat = dat[dat.columns[cols]]
+
+    if dat.shape != dat.drop_duplicates().shape:
+        qa_cols = dat.columns[dat.columns.to_series().str.contains("qa_")]
+        dat[qa_cols] = -1
+
     return dat
 
 
-# import numpy as np
-# thresholds = pd.read_csv("../test/elements.csv")
-# thresholds = thresholds[thresholds["date_end"].isna()]
-# dat = pd.read_csv("../test/observations.csv")
-# dat = dat[['station', 'datetime', 'element', 'value']]
+import numpy as np
+thresholds = pd.read_csv("../test/elements.csv")
+thresholds = thresholds[thresholds["date_end"].isna()]
+dat = pd.read_csv("../test/observations.csv")
+dat = dat[['station', 'datetime', 'element', 'value']]
 
 # thresholds = pd.read_csv("~/Desktop/thresholds.csv")
 # dat = pd.read_csv("~/Desktop/dat.csv")
 # columns = Columns()
-# checks = [ck.check_range_pd, ck.check_step_pd, check_like_elements]
+checks = [ck.check_range_pd, ck.check_step_pd, ck.check_like_elements]
 # dat = check_observations(dat, thresholds, columns, *checks, filter_first=True)
 # dat = dat.merge(thresholds, on=["station", "element"], how="left")
