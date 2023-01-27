@@ -1,4 +1,3 @@
-import pandas as pd
 
 import pyqc.checks as ck
 from pyqc.columns import Columns

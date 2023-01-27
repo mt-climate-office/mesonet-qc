@@ -2,8 +2,6 @@ from typing import Callable, List
 
 import pandas as pd
 
-import pyqc.checks as ck
-# from pyqc.columns import Columns
 from .columns import Columns
 
 

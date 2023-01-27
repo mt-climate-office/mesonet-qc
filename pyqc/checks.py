@@ -223,7 +223,7 @@ def check_like_elements(
             # Binary number goes from R -> L so we need to reverse the elements to match.
             like_elems = list(reversed(like_elems))
             like_elems.insert(0, "datetime")
-            like_elems = dict(zip(like_elems, range(len(like_elems))))
+            like_elems = dict(zip(like_elems, range(len(like_elems)), strict=True))
 
             filt = filt[["datetime", "element"]].assign(
                 # Sum the QA columns
