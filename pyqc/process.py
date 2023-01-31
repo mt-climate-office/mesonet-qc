@@ -83,8 +83,6 @@ def check_observations(
     dat = dat.merge(elements, on=["station", "element"], how="left")
 
     for check in checks:
-        print(f"{check.__name__=}")
-        print(dat.shape)
         dat = check(dat, columns=columns, **kwargs)
 
     cols = dat.columns.to_series().str.contains("|".join(keep_columns))
