@@ -78,7 +78,9 @@ def check_step(x: Numeric, prev: Numeric, threshold: Numeric) -> int:
     return 1
 
 
-def check_step_pd(dat: pd.DataFrame, columns: Columns, filter_first: bool = True, **kwargs) -> pd.DataFrame:
+def check_step_pd(
+    dat: pd.DataFrame, columns: Columns, filter_first: bool = True, **kwargs
+) -> pd.DataFrame:
     """Check step size criteria and assign QA flag for all observations in a DataFrame
 
     Args:
@@ -118,8 +120,8 @@ def check_step_pd(dat: pd.DataFrame, columns: Columns, filter_first: bool = True
 
     dat = dat.assign(qa_step=(~(dat["diff"] < dat[columns.step_col])).astype(int))
     if not filter_first:
-        dat = dat.assign(qa_step = np.where(dat['diff'].isna(), -1, dat['qa_step']))
-        
+        dat = dat.assign(qa_step=np.where(dat["diff"].isna(), -1, dat["qa_step"]))
+
     dat = dat.drop(columns=["diff"])
     dat = dat.assign(qa_step=np.where(dat[columns.step_col].isna(), -1, dat["qa_step"]))
 
@@ -227,7 +229,9 @@ def check_like_elements(
 
             filt = filt[["datetime", "element"]].assign(
                 # Sum the QA columns
-                qa_sum=filt[filt.columns[qa_cols]].apply(lambda x: -1 if -1 in x else sum(x), axis=1)
+                qa_sum=filt[filt.columns[qa_cols]].apply(
+                    lambda x: -1 if -1 in x else sum(x), axis=1
+                )
             )
             filt = (
                 filt.assign(qa_sum=filt["qa_sum"].apply(lambda x: min(1, x)))
@@ -250,13 +254,17 @@ def check_like_elements(
             )[["datetime", "qa_shared"]]
 
             # Convert binary string to integer.
-            filt = filt.assign(qa_shared=filt["qa_shared"].apply(lambda x: -1 if '-1' in x else int(x, 2)))
+            filt = filt.assign(
+                qa_shared=filt["qa_shared"].apply(
+                    lambda x: -1 if "-1" in x else int(x, 2)
+                )
+            )
 
             tmp = tmp.merge(filt, how="left", on="datetime")
         except AttributeError:
             tmp = tmp.assign(qa_shared=0)
         except ValueError:
-            # This means there is an airtable error. 
+            # This means there is an airtable error.
             tmp = tmp.assign(qa_shared=-1)
 
         out.append(tmp)
