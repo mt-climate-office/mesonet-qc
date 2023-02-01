@@ -23,7 +23,7 @@ def merge_elements_by_date(
     elements = elements.assign(
         date_end=elements[columns.end_col].fillna(dt.date.today())
     )
-    elements = elements[elements[columns.end_col]> max_date]
+    elements = elements[elements[columns.end_col] > max_date]
 
     pre_shp = dat.shape
 
