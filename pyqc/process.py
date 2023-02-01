@@ -20,10 +20,11 @@ def merge_elements_by_date(
     """
 
     max_date = max(dat[columns.dt_col].dt.date)
-    elements = elements[elements[columns.end_col].dt.date > max_date]
     elements = elements.assign(
         date_end=elements[columns.end_col].fillna(dt.date.today())
     )
+    elements = elements[elements[columns.end_col]> max_date]
+
     pre_shp = dat.shape
 
     dat = dat.merge(elements, on=["element", "station"], how="left")
@@ -94,10 +95,10 @@ def check_observations(
     return dat
 
 
-# dat = pd.read_csv("~/Desktop/obs.csv", index_col=0)
+# dat = pd.read_csv("../test/observations.csv")
 # dat['datetime'] = pd.to_datetime(dat['datetime'])
-# elements = pd.read_csv("~/Desktop/elems.csv", index_col=0)
-# elements['date_start'] = pd.to_datetime(elements['date_start'])
-# elements['date_end'] = pd.to_datetime(elements['date_end'])
-# # columns = Columns()
+# elements = pd.read_csv("../test/elements.csv")
+# elements['date_start'] = pd.to_datetime(elements['date_start']).dt.date
+# elements['date_end'] = pd.to_datetime(elements['date_end']).dt.date
+# columns = Columns()
 # # checks = [check_range_pd, check_step_pd, check_like_elements]
