@@ -6,12 +6,14 @@ import pandas as pd
 from .columns import Columns
 
 
-def merge_elements_by_date(dat: pd.DataFrame, elements: pd.DataFrame, columns: Columns) -> pd.DataFrame:
-    """Make sure elements are aligned with proper observation dates. 
+def merge_elements_by_date(
+    dat: pd.DataFrame, elements: pd.DataFrame, columns: Columns
+) -> pd.DataFrame:
+    """Make sure elements are aligned with proper observation dates.
     Args:
         dat (pd.DataFrame): DataFrame of all observations that will be QA/QC'd
         elements (pd.DataFrame): DataFrame of all sensor deployments at a given station.
-        columns (Columns): An instance of the `Columns` class. 
+        columns (Columns): An instance of the `Columns` class.
     Returns:
         pd.DataFrame: A filtered version of `elements` where each element is filtered to match
         the date of the observations.
@@ -19,7 +21,9 @@ def merge_elements_by_date(dat: pd.DataFrame, elements: pd.DataFrame, columns: C
 
     max_date = max(dat[columns.dt_col].dt.date)
     elements = elements[elements[columns.end_col].dt.date > max_date]
-    elements = elements.assign(date_end=elements[columns.end_col].fillna(dt.date.today()))
+    elements = elements.assign(
+        date_end=elements[columns.end_col].fillna(dt.date.today())
+    )
     pre_shp = dat.shape
 
     dat = dat.merge(elements, on=["element", "station"], how="left")

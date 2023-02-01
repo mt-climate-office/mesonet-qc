@@ -7,7 +7,7 @@ class Columns:
     Args:
         compare_col (str): The column with data values to be QA/QC checked.
         start_col (str): The column giving the start date of an element.
-        end_date (str): The column giing the end date of an element. 
+        end_date (str): The column giing the end date of an element.
         min_col (str): The column specifying the minimum valid range of an observation.
         max_col (str): The column specifying the maximum valid range of an observation.
         flag_min_col (str): Some variables should raise a flag if its observations are out of a specified range,
