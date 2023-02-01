@@ -6,28 +6,30 @@ import pandas as pd
 from .columns import Columns
 
 
-def match_elements_by_date(dat: pd.DataFrame, elements: pd.DataFrame) -> pd.DataFrame:
-    """Filter elements to match sensor deployment dates.
+def merge_elements_by_date(dat: pd.DataFrame, elements: pd.DataFrame, columns: Columns) -> pd.DataFrame:
+    """Make sure elements are aligned with proper observation dates. 
     Args:
         dat (pd.DataFrame): DataFrame of all observations that will be QA/QC'd
         elements (pd.DataFrame): DataFrame of all sensor deployments at a given station.
+        columns (Columns): An instance of the `Columns` class. 
     Returns:
         pd.DataFrame: A filtered version of `elements` where each element is filtered to match
         the date of the observations.
     """
-    elements = elements.copy(deep=True)
-    elements = elements.assign(date_end=elements["date_end"].fillna(dt.date.today()))
-    tmp = dat.assign(date=dat["datetime"].dt.date)[
-        ["element", "date"]
-    ].drop_duplicates()
 
-    elements = elements.merge(tmp, on="element", how="left")
-    elements = elements[
-        (elements["date_start"] <= elements["date"])
-        & (elements["date_end"] > elements["date"])
-    ]
-    elements = elements.drop(columns=["date"]).drop_duplicates(ignore_index=True)
-    return elements
+    max_date = max(dat[columns.dt_col].dt.date)
+    elements = elements[elements[columns.end_col].dt.date > max_date]
+    elements = elements.assign(date_end=elements[columns.end_col].fillna(dt.date.today()))
+    pre_shp = dat.shape
+
+    dat = dat.merge(elements, on=["element", "station"], how="left")
+    if pre_shp[0] != dat.shape[0]:
+        raise IndexError(
+            """There is a duplicated element in the elements table! 
+            Please make sure all elements in this table are unique."""
+        )
+
+    return dat
 
 
 def check_observations(
@@ -73,14 +75,7 @@ def check_observations(
     if "qa_" not in keep_columns:
         keep_columns.append("qa_")
 
-    elements = match_elements_by_date(dat, elements)
-    if any(elements["element"].duplicated()):
-        raise IndexError(
-            """There is a duplicated element in the elements table! 
-            Please make sure all elements in this table are unique."""
-        )
-
-    dat = dat.merge(elements, on=["station", "element"], how="left")
+    dat = merge_elements_by_date(dat, elements, columns)
 
     for check in checks:
         dat = check(dat, columns=columns, **kwargs)
@@ -95,15 +90,10 @@ def check_observations(
     return dat
 
 
-# import numpy as np
-# elements = pd.read_csv("../test/elements.csv")
-# elements = elements[elements["date_end"].isna()]
-# dat = pd.read_csv("../test/observations.csv")
-# dat = dat[['station', 'datetime', 'element', 'value']]
-
-# # elements = pd.read_csv("~/Desktop/elements.csv")
-# # dat = pd.read_csv("~/Desktop/dat.csv")
+# dat = pd.read_csv("~/Desktop/obs.csv", index_col=0)
+# dat['datetime'] = pd.to_datetime(dat['datetime'])
+# elements = pd.read_csv("~/Desktop/elems.csv", index_col=0)
+# elements['date_start'] = pd.to_datetime(elements['date_start'])
+# elements['date_end'] = pd.to_datetime(elements['date_end'])
 # # columns = Columns()
 # # checks = [check_range_pd, check_step_pd, check_like_elements]
-# dat = check_observations(dat, elements, columns, *checks, filter_first=True)
-# dat = dat.merge(elements, on=["station", "element"], how="left")

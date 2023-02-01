@@ -6,6 +6,8 @@ class Columns:
     """A class to keep track of the columns used to QA/QC check data.
     Args:
         compare_col (str): The column with data values to be QA/QC checked.
+        start_col (str): The column giving the start date of an element.
+        end_date (str): The column giing the end date of an element. 
         min_col (str): The column specifying the minimum valid range of an observation.
         max_col (str): The column specifying the maximum valid range of an observation.
         flag_min_col (str): Some variables should raise a flag if its observations are out of a specified range,
@@ -21,6 +23,8 @@ class Columns:
     """
 
     compare_col: str = "value"
+    start_col: str = "date_start"
+    end_col: str = "date_end"
     min_col: str = "range_min"
     max_col: str = "range_max"
     flag_min_col: str = "flag_min"
