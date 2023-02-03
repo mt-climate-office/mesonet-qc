@@ -3,8 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Mapping
 
-import numpy as np
-
 
 @dataclass
 class Bits:
@@ -15,7 +13,7 @@ class Bits:
 
     def encode(self):
 
-        if self.value:
+        if self.value is not None:
             if self.value == -1:
                 # If the bit value is -1 (i.e. test cannot be performed),
                 # fill the leftmost bit with a 1.
@@ -52,7 +50,6 @@ class BitEncoder:
     qa_shared: int = None
     total_bits: int = 32  # How long should the bit string be?
     _bit_list: List[Bits] = field(init=False)
-    bit_subsetter: np.ndarray = field(init=False)
 
     def __post_init__(self):
         self.qa_step = Bits("qa_step", 0, 2, self.qa_step)
@@ -82,7 +79,7 @@ class BitEncoder:
     def code_to_human_readable(code: str, shared: str | None = None):
         code = code[::-1]
         if len(code) > 2 and shared:
-            return
+            return "Implement the shared logic."
 
         # If all bits are '1'
         if code.count("1") == len(code):
@@ -92,7 +89,10 @@ class BitEncoder:
         if code[0] == "1" and (code.count("0") == len(code) - 1):
             return "Unable to perform QA/QC check. If this is unexpected, check AirTable and metadata."
 
-        return "Finish writing this function@!!!"
+        if code.count("0") == len(code):
+            return None
+        
+        return "QA/QC flag raised for this check. "
 
     def decode(self, qa_val: str | int) -> Mapping[str, str]:
         if isinstance(qa_val, int):
@@ -107,10 +107,10 @@ class BitEncoder:
         for bit in sorted(self._bit_list):
             end = cur_idx + bit.bits
             code = qa_val[cur_idx:end]
-            out[bit.name] = code
+            out[bit.name] = self.code_to_human_readable(code)
             cur_idx = end
 
         return out
 
 
-# dat = pd.read_csv("~/Desktop/example.csv")
+# dat = pd.read_csv("~/Desktop/test.csv")
