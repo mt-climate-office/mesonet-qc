@@ -12,7 +12,6 @@ class Bits:
     value: int
 
     def encode(self):
-
         if self.value is not None:
             if self.value == -1:
                 # If the bit value is -1 (i.e. test cannot be performed),
@@ -91,7 +90,7 @@ class BitEncoder:
 
         if code.count("0") == len(code):
             return None
-        
+
         return "QA/QC flag raised for this check. "
 
     def decode(self, qa_val: str | int) -> Mapping[str, str]:

@@ -1,4 +1,3 @@
-import datetime as dt
 from typing import Callable, List
 
 import pandas as pd
@@ -18,16 +17,29 @@ def merge_elements_by_date(
         pd.DataFrame: A filtered version of `elements` where each element is filtered to match
         the date of the observations.
     """
+    obs_dt = dat["datetime"].dt.tz
 
-    max_date = max(dat[columns.dt_col].dt.date)
+    elements[columns.start_col] = pd.to_datetime(
+        elements[columns.start_col]
+    ).dt.tz_localize(obs_dt)
+    elements[columns.end_col] = pd.to_datetime(
+        elements[columns.end_col]
+    ).dt.tz_localize(obs_dt)
+
     elements = elements.assign(
-        date_end=elements[columns.end_col].fillna(dt.date.today())
+        date_end=elements[columns.end_col].fillna(
+            pd.Timestamp.now(dat["datetime"].dt.tz)
+        )
     )
-    elements = elements[elements[columns.end_col] > max_date]
 
+    elements = elements.assign(
+        date_end=elements["date_end"] + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
+    )
     pre_shp = dat.shape
 
     dat = dat.merge(elements, on=["element", "station"], how="left")
+
+    dat = dat[dat["datetime"].between(dat["date_start"], dat["date_end"])]
     if pre_shp[0] != dat.shape[0]:
         raise IndexError(
             """There is a duplicated element in the elements table! 

@@ -42,7 +42,6 @@ def check_range_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFram
     )
 
     if (columns.flag_min_col in dat.columns) and (columns.flag_max_col in dat.columns):
-
         dat = dat.assign(
             flag_range=dat[columns.compare_col].between(
                 dat[columns.flag_min_col], dat[columns.flag_max_col], inclusive="both"
@@ -144,7 +143,6 @@ def check_variance(x: np.ndarray | List[Numeric], threshold: Numeric) -> int:
 
 
 def _calc_daily_variance(dat: pd.DataFrame, columns: Columns) -> pd.DataFrame:
-
     dat = dat.assign(datetime=pd.to_datetime(dat[columns.dt_col]))
 
     sd = (
@@ -204,7 +202,6 @@ def check_variance_pd(
 def check_like_elements(
     dat: pd.DataFrame, columns: Columns, **kwargs: pd.DataFrame
 ) -> pd.DataFrame:
-
     qa_cols = dat.columns.to_series().str.contains("qa_")
     split = {k: v for k, v in dat.groupby("element")}
     out = []
