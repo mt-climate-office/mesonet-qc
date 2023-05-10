@@ -38,9 +38,23 @@ def merge_elements_by_date(
     pre_shp = dat.shape
 
     dat = dat.merge(elements, on=["element", "station"], how="left")
-
+    
+    no_element = dat[~dat["datetime"].between(dat["date_start"], dat["date_end"])]
     dat = dat[dat["datetime"].between(dat["date_start"], dat["date_end"])]
-    if pre_shp[0] != dat.shape[0]:
+
+    # Rejoin if an elements metadata is missing. This will fill flags with -1 value.
+    if pre_shp[0] > dat.shape[0]:
+        no_element = no_element[(no_element['date_start'].isna()) & (no_element['date_end'].isna())]
+        dat = pd.concat([dat, no_element], ignore_index=True)
+    
+    # Recheck to see if this is still the case
+    if pre_shp[0] > dat.shape[0]:
+        raise IndexError(
+            """An element being reported is missing in the elements table!
+            Please check the elements table!"""
+        )
+    
+    if pre_shp[0] < dat.shape[0]:
         raise IndexError(
             """There is a duplicated element in the elements table! 
             Please make sure all elements in this table are unique."""
