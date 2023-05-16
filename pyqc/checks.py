@@ -215,7 +215,8 @@ def check_like_elements(
         try:
             like_elems = tmp[columns.shared_col].values[0].split(",")
             if elev:
-                like_elems = [x + f"_{elev:04}" for x in like_elems]
+                new_like_elems = [x + f"_{elev:04}" for x in like_elems]
+                like_elems += new_like_elems
             filt = dat[dat["element"].isin(like_elems)]
 
             # Reversed because this order will be used to assign QA bit flags.
