@@ -21,10 +21,10 @@ def merge_elements_by_date(
 
     elements[columns.start_col] = pd.to_datetime(
         elements[columns.start_col]
-    ).dt.tz_localize(obs_dt)
+    ).dt.tz_localize("UTC").dt.tz_convert(obs_dt)
     elements[columns.end_col] = pd.to_datetime(
         elements[columns.end_col]
-    ).dt.tz_localize(obs_dt)
+    ).dt.tz_localize("UTC").dt.tz_convert(obs_dt)
 
     elements = elements.assign(
         date_end=elements[columns.end_col].fillna(

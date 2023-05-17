@@ -237,7 +237,7 @@ def check_like_elements(
                 .pivot(index="datetime", columns="element", values="qa_sum")
                 .rename_axis(None, axis=1)
                 .reset_index()
-                .fillna(1)
+                .fillna(-1)
             )
 
             # Join the columns to create a binary string
