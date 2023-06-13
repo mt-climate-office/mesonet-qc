@@ -4,7 +4,9 @@ import pandas as pd
 
 from .columns import Columns
 
-
+elements = pd.read_csv("~/Desktop/elems.csv")
+dat = pd.read_csv("~/Desktop/obs.csv")
+dat['datetime'] = pd.to_datetime(dat['datetime'])
 def merge_elements_by_date(
     dat: pd.DataFrame, elements: pd.DataFrame, columns: Columns
 ) -> pd.DataFrame:
@@ -35,12 +37,15 @@ def merge_elements_by_date(
     elements = elements.assign(
         date_end=elements["date_end"] + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
     )
+
     pre_shp = dat.shape
 
     dat = dat.merge(elements, on=["element", "station"], how="left")
-
     no_element = dat[~dat["datetime"].between(dat["date_start"], dat["date_end"])]
     dat = dat[dat["datetime"].between(dat["date_start"], dat["date_end"])]
+    dat = dat.sort_values("date_end", ascending=False)
+    duped = dat[['station', 'datetime', 'element']].duplicated()
+    dat = dat[~duped]
 
     # Rejoin if an elements metadata is missing. This will fill flags with -1 value.
     if pre_shp[0] > dat.shape[0]:
