@@ -4,9 +4,9 @@ import pandas as pd
 
 from .columns import Columns
 
-elements = pd.read_csv("~/Desktop/elems.csv")
-dat = pd.read_csv("~/Desktop/obs.csv")
-dat['datetime'] = pd.to_datetime(dat['datetime'])
+# elements = pd.read_csv("~/Desktop/elems.csv")
+# dat = pd.read_csv("~/Desktop/obs.csv")
+# dat['datetime'] = pd.to_datetime(dat['datetime'])
 def merge_elements_by_date(
     dat: pd.DataFrame, elements: pd.DataFrame, columns: Columns
 ) -> pd.DataFrame:
