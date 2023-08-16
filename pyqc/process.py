@@ -4,9 +4,7 @@ import pandas as pd
 
 from .columns import Columns
 
-# elements = pd.read_csv("~/Desktop/elems.csv")
-# dat = pd.read_csv("~/Desktop/obs.csv")
-# dat['datetime'] = pd.to_datetime(dat['datetime'])
+
 def merge_elements_by_date(
     dat: pd.DataFrame, elements: pd.DataFrame, columns: Columns
 ) -> pd.DataFrame:
@@ -21,12 +19,16 @@ def merge_elements_by_date(
     """
     obs_dt = dat["datetime"].dt.tz
 
-    elements[columns.start_col] = pd.to_datetime(
-        elements[columns.start_col]
-    ).dt.tz_localize("UTC").dt.tz_convert(obs_dt)
-    elements[columns.end_col] = pd.to_datetime(
-        elements[columns.end_col]
-    ).dt.tz_localize("UTC").dt.tz_convert(obs_dt)
+    elements[columns.start_col] = (
+        pd.to_datetime(elements[columns.start_col])
+        .dt.tz_localize("UTC")
+        .dt.tz_convert(obs_dt)
+    )
+    elements[columns.end_col] = (
+        pd.to_datetime(elements[columns.end_col])
+        .dt.tz_localize("UTC")
+        .dt.tz_convert(obs_dt)
+    )
 
     elements = elements.assign(
         date_end=elements[columns.end_col].fillna(
@@ -38,13 +40,14 @@ def merge_elements_by_date(
         date_end=elements["date_end"] + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
     )
 
+    dat = dat.drop_duplicates()
     pre_shp = dat.shape
 
     dat = dat.merge(elements, on=["element", "station"], how="left")
     no_element = dat[~dat["datetime"].between(dat["date_start"], dat["date_end"])]
     dat = dat[dat["datetime"].between(dat["date_start"], dat["date_end"])]
     dat = dat.sort_values("date_end", ascending=False)
-    duped = dat[['station', 'datetime', 'element']].duplicated()
+    duped = dat[["station", "datetime", "element"]].duplicated()
     dat = dat[~duped]
 
     # Rejoin if an elements metadata is missing. This will fill flags with -1 value.
@@ -126,12 +129,3 @@ def check_observations(
         dat[qa_cols] = -1
 
     return dat
-
-
-# dat = pd.read_csv("../test/observations.csv")
-# dat['datetime'] = pd.to_datetime(dat['datetime'])
-# elements = pd.read_csv("../test/elements.csv")
-# elements['date_start'] = pd.to_datetime(elements['date_start']).dt.date
-# elements['date_end'] = pd.to_datetime(elements['date_end']).dt.date
-# columns = Columns()
-# # checks = [check_range_pd, check_step_pd, check_like_elements]
