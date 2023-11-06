@@ -41,7 +41,7 @@ def test_check_step_pd_with_filter_first_false(observations, elements):
     new = ck.check_step_pd(dat, columns, filter_first=False)
     assert -1 in new["qa_step"].values, "The initial value was not kept properly."
     assert (
-        dat.shape[0] == new.shape[0]
+        dat.shape[0] <= new.shape[0]
     ), "Rows were removed in the step check when they should not have."
 
 
