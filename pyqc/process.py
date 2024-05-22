@@ -43,11 +43,21 @@ def merge_elements_by_date(
     dat = dat.drop_duplicates()
     pre_shp = dat.shape
 
-    dat = dat.merge(elements, on=["element", "station"], how="left")
+    if "id" in dat.columns:
+        dat = dat.merge(
+            elements,
+            left_on=["station", "element", "id"],
+            right_on=["station", "element", "sdi12_address"]
+        )
+    else:
+        dat = dat.merge(elements, on=["element", "station"], how="left")
     no_element = dat[~dat["datetime"].between(dat["date_start"], dat["date_end"])]
     dat = dat[dat["datetime"].between(dat["date_start"], dat["date_end"])]
     dat = dat.sort_values("date_end", ascending=False)
-    duped = dat[["station", "datetime", "element"]].duplicated()
+    if "id" in dat.columns:
+        duped = dat[["station", "datetime", "element", "id"]].duplicated()
+    else:
+        duped = dat[["station", "datetime", "element"]].duplicated()
     dat = dat[~duped]
 
     # Rejoin if an elements metadata is missing. This will fill flags with -1 value.
@@ -103,6 +113,7 @@ def check_observations(
     """
 
     # Make sure the like_element check is the final check that is done.
+    checks = list(checks)
     check_names = [x.__name__ for x in checks]
     if ("check_like_elements" in check_names) and (
         check_names[-1] != "check_like_elements"

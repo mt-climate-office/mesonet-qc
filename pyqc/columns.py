@@ -35,3 +35,4 @@ class Columns:
     delta_col: str = "persistence_delta"
     like_col: str = "like_element"
     shared_col: str = "shared_sensor"
+    outages_col: str = "outage_ranges"
