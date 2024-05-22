@@ -274,25 +274,24 @@ def check_like_elements(
 
 
 def apply_outage_check(row):
-    if not row['outage_ranges']:
+    if not row["outage_ranges"]:
         return 0
 
-    time = row['datetime']
+    time = row["datetime"]
     out = 0
-    for outage in row['outage_ranges']:
+    for outage in row["outage_ranges"]:
         outage = pd.to_datetime(outage).tz_localize(time.tz)
         if len(outage) == 2:
             tmp = int(outage[0] <= time <= outage[1])
         else:
             tmp = time > outage[0]
         out = max(out, tmp)
-        
+
     return out
+
 
 def check_outages(
     dat: pd.DataFrame, columns: Columns, **kwargs: pd.DataFrame
 ) -> pd.DataFrame:
-    dat = dat.assign(
-        qa_outage = dat.apply(apply_outage_check, axis=1)
-    )
+    dat = dat.assign(qa_outage=dat.apply(apply_outage_check, axis=1))
     return dat

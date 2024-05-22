@@ -47,7 +47,7 @@ def merge_elements_by_date(
         dat = dat.merge(
             elements,
             left_on=["station", "element", "id"],
-            right_on=["station", "element", "sdi12_address"]
+            right_on=["station", "element", "sdi12_address"],
         )
     else:
         dat = dat.merge(elements, on=["element", "station"], how="left")
