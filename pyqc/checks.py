@@ -91,14 +91,18 @@ def check_step_pd(
     Returns:
         pd.DataFrame:  Updated DataFrame that now has a `qa_step` column with associated QA/QC flag values.
     """
-    dat = dat.sort_values(
-        [columns.elem_col, columns.dt_col], ascending=False, ignore_index=True
-    )
+    sort_cols = [columns.elem_col, columns.dt_col]
+
+    if "id" in dat.columns:
+        sort_cols.append("id")
+    dat = dat.sort_values(sort_cols, ascending=False, ignore_index=True)
 
     dat = dat.set_index([columns.dt_col])
 
+    grp_cols = ["id", columns.elem_col] if "id" in dat.columns else [columns.elem_col]
+
     diffs = (
-        dat.groupby(columns.elem_col)[columns.compare_col]
+        dat.groupby(grp_cols, dropna=False)[columns.compare_col]
         .rolling(2)
         .apply(lambda x: abs(x.iloc[1] - x.iloc[0]))
         .shift(-1)
