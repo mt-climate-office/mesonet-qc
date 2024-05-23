@@ -284,7 +284,7 @@ def apply_outage_check(row):
         if len(outage) == 2:
             tmp = int(outage[0] <= time <= outage[1])
         else:
-            tmp = time > outage[0]
+            tmp = int(time > outage[0])
         out = max(out, tmp)
 
     return out

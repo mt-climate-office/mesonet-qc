@@ -122,7 +122,15 @@ def check_observations(
         checks.append(func)
 
     if keep_columns is None:
-        keep_columns = ["station", "datetime", "^element$", "value", "units", "qa_"]
+        keep_columns = [
+            "station",
+            "datetime",
+            "^element$",
+            "value",
+            "units",
+            "qa_",
+            "^id$",
+        ]
 
     if "qa_" not in keep_columns:
         keep_columns.append("qa_")
