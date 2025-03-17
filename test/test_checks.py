@@ -13,12 +13,12 @@ def test_check_step():
 
 
 def test_check_variance():
-    assert (
-        ck.check_variance([1, 2, 1, 2, 1, 2], 0.25) == 0
-    ), "Std dev check fails when it should pass."
-    assert (
-        ck.check_variance([1, 2, 1, 2, 1, 2], 1) == 1
-    ), "Std dev check passes when it should fail."
+    assert ck.check_variance([1, 2, 1, 2, 1, 2], 0.25) == 0, (
+        "Std dev check fails when it should pass."
+    )
+    assert ck.check_variance([1, 2, 1, 2, 1, 2], 1) == 1, (
+        "Std dev check passes when it should fail."
+    )
 
 
 def test_check_range_pd(observations, elements):
@@ -40,9 +40,9 @@ def test_check_step_pd_with_filter_first_false(observations, elements):
     dat = observations.merge(elements, on=["station", "element"], how="left")
     new = ck.check_step_pd(dat, columns, filter_first=False)
     assert -1 in new["qa_step"].values, "The initial value was not kept properly."
-    assert (
-        dat.shape[0] <= new.shape[0]
-    ), "Rows were removed in the step check when they should not have."
+    assert dat.shape[0] <= new.shape[0], (
+        "Rows were removed in the step check when they should not have."
+    )
 
 
 def test_check_variance_pd(observations, elements):

@@ -44,7 +44,7 @@ def merge_elements_by_date(
     pre_shp = dat.shape
 
     if "id" in dat.columns:
-        elements.loc[~elements['element'].str.contains('soil'), 'sdi12_address'] = None
+        elements.loc[~elements["element"].str.contains("soil"), "sdi12_address"] = None
         dat = dat.merge(
             elements,
             left_on=["station", "element", "id"],
