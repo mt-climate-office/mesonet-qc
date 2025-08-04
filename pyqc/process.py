@@ -45,6 +45,13 @@ def merge_elements_by_date(
 
     if "id" in dat.columns:
         elements.loc[~elements["element"].str.contains("soil"), "sdi12_address"] = None
+        soil_counts = elements[elements["element"].str.contains("soil")][
+            "element"
+        ].value_counts()
+        single_occurrence = soil_counts[soil_counts == 1].index
+        elements.loc[elements["element"].isin(single_occurrence), "sdi12_address"] = (
+            None
+        )
         dat = dat.merge(
             elements,
             left_on=["station", "element", "id"],
