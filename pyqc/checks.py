@@ -42,17 +42,20 @@ def check_range_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFram
     )
 
     if (columns.flag_min_col in dat.columns) and (columns.flag_max_col in dat.columns):
-        dat = dat.assign(
-            flag_range=dat[columns.compare_col].between(
-                dat[columns.flag_min_col], dat[columns.flag_max_col], inclusive="both"
+        try:    
+            dat = dat.assign(
+                flag_range=dat[columns.compare_col].between(
+                    dat[columns.flag_min_col], dat[columns.flag_max_col], inclusive="both"
+                )
             )
-        )
-        dat = dat.assign(
-            flag_range=np.where(
-                dat[columns.flag_min_col].isna(), True, dat["flag_range"]
+            dat = dat.assign(
+                flag_range=np.where(
+                    dat[columns.flag_min_col].isna(), True, dat["flag_range"]
+                )
             )
-        )
-        dat = dat.assign(qa_range=(~dat.qa_range | ~dat.flag_range).astype(int))
+            dat = dat.assign(qa_range=(~dat.qa_range | ~dat.flag_range).astype(int))
+        except TypeError:
+            dat = dat.assign(qa_range=(~dat["qa_range"]).astype(int))
     else:
         dat = dat.assign(qa_range=(~dat["qa_range"]).astype(int))
 
