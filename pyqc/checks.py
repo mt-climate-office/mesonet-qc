@@ -46,12 +46,36 @@ def check_range(x: Numeric, low: Numeric, high: Numeric) -> int:
 def check_range_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFrame:
     """Check that all observations fall within an accepted range of values in a Pandas DataFrame.
 
+    This function checks if values in ``columns.compare_col`` are within the range specified by
+    ``columns.min_col`` and ``columns.max_col``. It also supports an optional "flag" range check
+    using ``columns.flag_min_col`` and ``columns.flag_max_col``.
+
     Args:
-        dat (pd.DataFrame): A DataFrame that has has both observations and criteria needed to run the range check.
-        columns (Columns): A Columns object that provides column mappings for everything needed to run the test.
+        dat (pd.DataFrame): A DataFrame containing observations and range criteria columns.
+        columns (Columns): A Columns object mapping logical names to DataFrame column names.
+        **kwargs: Additional keyword arguments (unused).
 
     Returns:
-        pd.DataFrame: Updated DataFrame that now has a `qa_range` column with associated QA/QC flag values.
+        pd.DataFrame: The input DataFrame with a new ``qa_range`` column.
+            - 0: Pass (value within range)
+            - 1: Fail (value outside range)
+            - -1: Not applicable (missing range criteria or value)
+
+    Examples:
+        >>> import pandas as pd
+        >>> from pyqc.columns import Columns
+        >>> cols = Columns(compare_col='val', min_col='min', max_col='max')
+        >>> df = pd.DataFrame({
+        ...     'val': [10, 50, 100, pd.NA],
+        ...     'min': [20, 20, 20, 20],
+        ...     'max': [80, 80, 80, 80]
+        ... })
+        >>> check_range_pd(df, cols)[['val', 'qa_range']]
+           val  qa_range
+        0   10         1
+        1   50         0
+        2  100         1
+        3  <NA>       -1
     """
     # Calculate base range check
     qa_range = dat[columns.compare_col].between(
@@ -111,56 +135,80 @@ def check_step(x: Numeric, prev: Numeric, threshold: Numeric) -> int:
 
 
 def check_step_pd(
-    dat: pd.DataFrame, columns: Columns, filter_first: bool = True, **kwargs
+    dat: pd.DataFrame,
+    columns: Columns,
+    filter_first: bool = True,
+    lookback: int = 1,
+    **kwargs,
 ) -> pd.DataFrame:
-    """Check step size criteria and assign QA flag for all observations in a DataFrame
+    """Check step size criteria and assign QA flag for all observations in a DataFrame.
+
+    Calculates the absolute difference between the current value and a previous value
+    (determined by ``lookback``) within each group defined by element (and optionally id).
+    Compares this difference to ``columns.step_col``.
 
     Args:
-        dat (pd.DataFrame): A DataFrame that has has both observations and criteria needed to run the step check.
-        columns (Columns): A Columns object that provides column mappings for everything needed to run the test.
-        filter_first (bool): When doing the step check, the first value in a timeseries cannot be QA'd because
-        there is no previous value to compare it to. If `filter_first` is True, this first value is simply filtered
-        out. If it is set to False, the observation is kept and the `qa_step` column is assigned a fill value of -1.
+        dat (pd.DataFrame): DataFrame containing observations and step criteria.
+        columns (Columns): Column mappings.
+        filter_first (bool): If True, removes the first ``lookback`` rows of each group
+            (where step cannot be calculated). If False, keeps them with flag -1.
+        lookback (int): Number of periods to look back for comparison. Default is 1.
+        **kwargs: Additional keyword arguments (unused).
+
     Returns:
-        pd.DataFrame:  Updated DataFrame that now has a `qa_step` column with associated QA/QC flag values.
+        pd.DataFrame: Input DataFrame with ``qa_step`` column.
+            - 0: Pass (step < threshold)
+            - 1: Fail (step >= threshold)
+            - -1: Not applicable (missing threshold or first value)
+
+    Examples:
+        >>> import pandas as pd
+        >>> from pyqc.columns import Columns
+        >>> cols = Columns(compare_col='val', step_col='step', dt_col='dt', elem_col='elem')
+        >>> df = pd.DataFrame({
+        ...     'dt': pd.to_datetime(['2021-01-01 12:00', '2021-01-01 12:05', '2021-01-01 12:10']),
+        ...     'elem': ['temp', 'temp', 'temp'],
+        ...     'val': [10, 12, 50],
+        ...     'step': [5, 5, 5]
+        ... })
+        >>> check_step_pd(df, cols, filter_first=False)[['val', 'qa_step']]
+           val  qa_step
+        0   10       -1
+        1   12        0
+        2   50        1
     """
     sort_cols = [columns.elem_col, columns.dt_col]
 
     if "id" in dat.columns:
         sort_cols.append("id")
-    dat = dat.sort_values(sort_cols, ascending=False, ignore_index=True)
-
-    dat = dat.set_index([columns.dt_col])
+    
+    # Sort by element and datetime (ascending) to ensure diff works correctly
+    dat = dat.sort_values(sort_cols, ascending=True, ignore_index=True)
 
     grp_cols = ["id", columns.elem_col] if "id" in dat.columns else [columns.elem_col]
 
-    diffs = (
-        dat.groupby(grp_cols, dropna=False)[columns.compare_col]
-        .rolling(2)
-        .apply(lambda x: abs(x.iloc[1] - x.iloc[0]))
-        .shift(-1)
-        .reset_index()
-        .rename(columns={"value": "diff"})
-    )
+    # Calculate the absolute difference between current and the value 'lookback' steps ago
+    dat["diff"] = dat.groupby(grp_cols)[columns.compare_col].diff(periods=lookback).abs()
 
-    if all(diffs["diff"].isna()):
-        dat = dat.assign(qa_step=-1)
-        dat = dat.reset_index()
-        return dat
-
-    dat = dat.reset_index()
-    dat = dat.merge(diffs, how="left")
-
+    # If filter_first is True, remove rows where 'diff' is NaN (first values in group)
     if filter_first:
-        dat = dat[~dat["diff"].isna()].reset_index(drop=True)
+        dat = dat.dropna(subset=["diff"]).reset_index(drop=True)
 
+    # Assign qa_step based on whether 'diff' is less than 'step_col'
+    # 0 if diff < step_col (pass), 1 otherwise (fail)
     dat = dat.assign(qa_step=(~(dat["diff"] < dat[columns.step_col])).astype(int))
+
+    # If not filter_first, set qa_step to -1 where 'diff' is NaN (first value in group)
     if not filter_first:
         dat = dat.assign(qa_step=np.where(dat["diff"].isna(), -1, dat["qa_step"]))
 
-    dat = dat.drop(columns=["diff"])
-    dat = dat.assign(qa_step=np.where(dat[columns.step_col].isna(), -1, dat["qa_step"]))
+    # Set qa_step to -1 where step_col is NaN (no threshold to compare against)
+    dat = dat.assign(
+        qa_step=np.where(dat[columns.step_col].isna(), -1, dat["qa_step"])
+    )
 
+    # Drop the temporary 'diff' column
+    dat = dat.drop(columns=["diff"])
     return dat
 
 
@@ -229,16 +277,40 @@ def _calc_daily_variance(dat: pd.DataFrame, columns: Columns) -> pd.DataFrame:
 def check_variance_pd(
     dat: pd.DataFrame, columns: Columns, **kwargs: pd.DataFrame
 ) -> pd.DataFrame:
-    """Check that the standard deviation of observations over the course of a day are above a
-    specified threshold.
+    """Check that the daily standard deviation of observations is above a specified threshold.
+
+    This check is designed to detect stuck sensors that report constant or near-constant values
+    over an entire day. It groups data by day and element, calculates the standard deviation,
+    and compares it to ``columns.delta_col``.
 
     Args:
-        dat (pd.DataFrame): A DataFrame of observations and threshold values for the test.
-        columns (Columns): A mapping of columns to use in the calculation.
-        **kwargs (pd.DataFrame): Optional - A DataFrame of daily variance for each element.
+        dat (pd.DataFrame): DataFrame containing observations and variance threshold columns.
+        columns (Columns): Column mappings.
+        **kwargs:
+            variance_df (pd.DataFrame, optional): Pre-calculated daily variance DataFrame.
+            If provided, it avoids recalculating variance. Must contain ``columns.elem_col``,
+            'date', and 'sd'.
 
     Returns:
-        pd.DataFrame: _description_
+        pd.DataFrame: Input DataFrame with ``qa_delta`` column.
+            - 0: Pass (std dev > threshold)
+            - 1: Fail (std dev <= threshold)
+            - -1: Not applicable (missing threshold)
+
+    Examples:
+        >>> import pandas as pd
+        >>> from pyqc.columns import Columns
+        >>> cols = Columns(compare_col='val', delta_col='min_std', dt_col='dt', elem_col='elem')
+        >>> df = pd.DataFrame({
+        ...     'dt': pd.to_datetime(['2021-01-01 00:00', '2021-01-01 12:00']),
+        ...     'elem': ['temp', 'temp'],
+        ...     'val': [10, 10],  # Constant value -> std dev is 0
+        ...     'min_std': [0.1, 0.1]
+        ... })
+        >>> check_variance_pd(df, cols)[['val', 'qa_delta']]
+           val  qa_delta
+        0   10         1
+        1   10         1
     """
 
     if "variance_df" in kwargs:
