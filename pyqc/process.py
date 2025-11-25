@@ -19,16 +19,30 @@ def merge_elements_by_date(
     """
     obs_dt = dat["datetime"].dt.tz
 
-    elements[columns.start_col] = (
-        pd.to_datetime(elements[columns.start_col])
-        .dt.tz_localize("UTC")
-        .dt.tz_convert(obs_dt)
-    )
-    elements[columns.end_col] = (
-        pd.to_datetime(elements[columns.end_col])
-        .dt.tz_localize("UTC")
-        .dt.tz_convert(obs_dt)
-    )
+    # Convert element dates to datetime
+    elements[columns.start_col] = pd.to_datetime(elements[columns.start_col])
+    elements[columns.end_col] = pd.to_datetime(elements[columns.end_col])
+    
+    # Only localize if dates are timezone-naive
+    if elements[columns.start_col].dt.tz is None:
+        elements[columns.start_col] = (
+            elements[columns.start_col]
+            .dt.tz_localize("UTC")
+            .dt.tz_convert(obs_dt)
+        )
+    elif obs_dt is not None:
+        # Convert from existing timezone to observation timezone
+        elements[columns.start_col] = elements[columns.start_col].dt.tz_convert(obs_dt)
+    
+    if elements[columns.end_col].dt.tz is None:
+        elements[columns.end_col] = (
+            elements[columns.end_col]
+            .dt.tz_localize("UTC")
+            .dt.tz_convert(obs_dt)
+        )
+    elif obs_dt is not None:
+        # Convert from existing timezone to observation timezone
+        elements[columns.end_col] = elements[columns.end_col].dt.tz_convert(obs_dt)
 
     elements = elements.assign(
         date_end=elements[columns.end_col].fillna(
