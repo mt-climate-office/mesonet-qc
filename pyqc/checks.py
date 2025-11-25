@@ -1,9 +1,12 @@
+import logging
 from typing import List
 
 import numpy as np
 import pandas as pd
 
 from .columns import Columns
+
+logger = logging.getLogger(__name__)
 
 Numeric = float | int | np.number
 
@@ -13,13 +16,29 @@ def check_range(x: Numeric, low: Numeric, high: Numeric) -> int:
 
     Args:
         x (Numeric): The value to check.
-        low (Numeric): The minimum bound on the range check.
-        high (Numeric): The maximum bound on the range check.
+        low (Numeric): The minimum bound on the range check (inclusive).
+        high (Numeric): The maximum bound on the range check (inclusive).
 
     Returns:
-        int: Returns 0 if the check passes, 1 if the check fails.
+        int: Returns 0 if the check passes, 1 if the check fails, -1 if any value is NaN.
+    
+    Examples:
+        >>> import numpy as np
+        >>> 
+        >>> # Temperature check: valid range 32-120°F
+        >>> check_range(75, 32, 120)  # Normal temperature
+        0
+        >>> check_range(150, 32, 120)  # Too hot - sensor error
+        1
+        >>> check_range(32, 32, 120)  # Boundary value - acceptable
+        0
+        >>> check_range(np.nan, 32, 120)  # Missing data
+        -1
     """
-    if x > low and x < high:
+    if pd.isna(x) or pd.isna(low) or pd.isna(high):
+        return -1
+    
+    if low <= x <= high:
         return 0
     return 1
 
@@ -34,34 +53,31 @@ def check_range_pd(dat: pd.DataFrame, columns: Columns, **kwargs) -> pd.DataFram
     Returns:
         pd.DataFrame: Updated DataFrame that now has a `qa_range` column with associated QA/QC flag values.
     """
-
-    dat = dat.assign(
-        qa_range=dat[columns.compare_col].between(
-            dat[columns.min_col], dat[columns.max_col], inclusive="both"
-        )
+    # Calculate base range check
+    qa_range = dat[columns.compare_col].between(
+        dat[columns.min_col], dat[columns.max_col], inclusive="both"
     )
 
+    # Check for flag range columns and apply if present
     if (columns.flag_min_col in dat.columns) and (columns.flag_max_col in dat.columns):
-        try:    
-            dat = dat.assign(
-                flag_range=dat[columns.compare_col].between(
-                    dat[columns.flag_min_col], dat[columns.flag_max_col], inclusive="both"
-                )
+        try:
+            flag_range = dat[columns.compare_col].between(
+                dat[columns.flag_min_col], dat[columns.flag_max_col], inclusive="both"
             )
-            dat = dat.assign(
-                flag_range=np.where(
-                    dat[columns.flag_min_col].isna(), True, dat["flag_range"]
-                )
-            )
-            dat = dat.assign(qa_range=(~dat.qa_range | ~dat.flag_range).astype(int))
-        except TypeError:
-            dat = dat.assign(qa_range=(~dat["qa_range"]).astype(int))
+            # Set flag_range to True where flag_min is NaN (no flagging required)
+            flag_range = np.where(dat[columns.flag_min_col].isna(), True, flag_range)
+            # Combine both checks: fail if either range or flag check fails
+            qa_range = (~qa_range | ~flag_range).astype(int)
+        except (TypeError, KeyError) as e:
+            logger.warning(f"Flag range check skipped due to: {e}")
+            qa_range = (~qa_range).astype(int)
     else:
-        dat = dat.assign(qa_range=(~dat["qa_range"]).astype(int))
+        qa_range = (~qa_range).astype(int)
 
-    dat = dat.assign(qa_range=np.where(dat["range_min"].isna(), -1, dat["qa_range"]))
+    # Mark as -1 (not applicable) where range_min is missing
+    qa_range = np.where(dat[columns.min_col].isna(), -1, qa_range)
 
-    return dat
+    return dat.assign(qa_range=qa_range)
 
 
 def check_step(x: Numeric, prev: Numeric, threshold: Numeric) -> int:
@@ -73,8 +89,22 @@ def check_step(x: Numeric, prev: Numeric, threshold: Numeric) -> int:
         threshold (Numeric): The threshold that the difference between `x` and `prev` must be smaller than.
 
     Returns:
-        int:  Returns 0 if the check passes, 1 if the check fails.
+        int:  Returns 0 if the check passes, 1 if the check fails, -1 if any value is NaN.
+    
+    Examples:
+        >>> import numpy as np
+        >>> 
+        >>> # Temperature readings 5 minutes apart, max step 10°F
+        >>> check_step(75.5, 75.0, 10)  # Normal gradual change (0.5°F)
+        0
+        >>> check_step(90.0, 75.0, 10)  # Sudden jump (15°F) - sensor error
+        1
+        >>> check_step(np.nan, 75.0, 10)  # Missing current reading
+        -1
     """
+    if pd.isna(x) or pd.isna(prev) or pd.isna(threshold):
+        return -1
+    
     if abs(prev - x) < threshold:
         return 0
     return 1
@@ -142,9 +172,35 @@ def check_variance(x: np.ndarray | List[Numeric], threshold: Numeric) -> int:
         threshold (Numeric): The standard deviation value that must be exceeded for the test to pass.
 
     Returns:
-        int: Returns 0 if the check passes, 1 if the check fails.
+        int: Returns 0 if the check passes, 1 if the check fails, -1 if inputs are invalid.
+    
+    Examples:
+        >>> import numpy as np
+        >>> 
+        >>> # Temperature over a day should vary by at least 2°F std dev
+        >>> temps_normal = [70, 72, 75, 78, 76, 73, 71, 70]  # Natural variation
+        >>> check_variance(temps_normal, 2.0)
+        0
+        >>> 
+        >>> # Stuck sensor - no variation
+        >>> temps_stuck = [70, 70, 70, 70, 70, 70, 70, 70]
+        >>> check_variance(temps_stuck, 2.0)
+        1
+        >>> 
+        >>> # Handle missing data
+        >>> temps_with_nan = [70, np.nan, 75, 78, np.nan, 73]
+        >>> check_variance(temps_with_nan, 2.0)  # Uses only valid values
+        0
     """
-    if np.std(x) > threshold:
+    # Convert to numpy array and filter out NaN values
+    x_clean = np.array(x)
+    x_clean = x_clean[~np.isnan(x_clean)]
+    
+    # Return -1 if no valid data or threshold is NaN
+    if len(x_clean) == 0 or pd.isna(threshold):
+        return -1
+    
+    if np.std(x_clean) > threshold:
         return 0
     return 1
 
@@ -302,3 +358,79 @@ def check_outages(
 ) -> pd.DataFrame:
     dat = dat.assign(qa_outage=dat.apply(apply_outage_check, axis=1))
     return dat
+
+
+def check_persistence_window(
+    dat: pd.DataFrame,
+    columns: Columns,
+    max_identical_readings: int = 6,
+    **kwargs
+) -> pd.DataFrame:
+    """Check for consecutive identical readings indicating a stuck sensor.
+    
+    This check complements the daily variance check by detecting short-term
+    persistence that might not trigger the daily standard deviation threshold.
+    
+    Args:
+        dat (pd.DataFrame): A DataFrame of observations with columns for datetime,
+            element, and values.
+        columns (Columns): A mapping of columns to use in the calculation.
+        max_identical_readings (int): Maximum allowed consecutive identical values.
+            Default is 6, which would flag 6+ identical readings in a row.
+        **kwargs: Additional keyword arguments (unused, for compatibility).
+    
+    Returns:
+        pd.DataFrame: Original DataFrame with added 'qa_persistence' column containing:
+            - 0: Check passed (no excessive persistence detected)
+            - 1: Check failed (sensor appears stuck with too many identical readings)
+    
+    Examples:
+        >>> import pandas as pd
+        >>> from pyqc.columns import Columns
+        >>> 
+        >>> # Sample data with stuck sensor
+        >>> dat = pd.DataFrame({
+        ...     'datetime': pd.date_range('2024-01-01', periods=10, freq='5min'),
+        ...     'element': ['air_temp'] * 10,
+        ...     'value': [50.0, 50.1, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 51.0, 51.5]
+        ... })
+        >>> 
+        >>> result = check_persistence_window(dat, Columns(), max_identical_readings=6)
+        >>> # Rows with 6+ consecutive 50.0 values will be flagged
+    
+    Notes:
+        - Values are compared for exact equality
+        - Check is applied per element (and per id if present)
+        - First occurrence of a value in a sequence is not flagged
+        - Useful for real-time monitoring where daily variance check cannot run
+    """
+    grp_cols = [columns.elem_col]
+    if "id" in dat.columns:
+        grp_cols.append("id")
+    
+    dat = dat.sort_values([*grp_cols, columns.dt_col], ignore_index=True)
+    
+    # Identify when value changes from previous reading
+    value_changed = (
+        dat.groupby(grp_cols, dropna=False)[columns.compare_col]
+        .diff()
+        .ne(0)
+    )
+    
+    # Count consecutive identical values using cumsum on value changes
+    # This creates a group ID that increments each time the value changes
+    group_id = value_changed.astype(int).cumsum()
+    
+    # Count size of each consecutive group
+    dat['_consecutive_count'] = (
+        dat.groupby([*grp_cols, group_id], dropna=False)
+        .cumcount() + 1
+    )
+    
+    # Flag if consecutive count reaches or exceeds threshold
+    qa_persistence = (dat['_consecutive_count'] >= max_identical_readings).astype(int)
+    
+    # Clean up temporary column and return
+    dat = dat.drop(columns=['_consecutive_count'])
+    
+    return dat.assign(qa_persistence=qa_persistence)
